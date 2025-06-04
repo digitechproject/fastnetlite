@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../fastnet"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "fastnetlite",
+		"powershell.cwd": "fastnetlite"
+	}
+}

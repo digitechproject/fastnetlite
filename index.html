@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastNetLite - Connexion</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-wifi fa-3x text-primary"></i>
+                            <h2 class="mt-2">FastNetLite</h2>
+                            <p class="text-muted">Plateforme de gestion de codes WiFi</p>
+                        </div>
+                        
+                        <!-- Formulaire de connexion -->
+                        <div id="loginForm">
+                            <h4 class="mb-4 text-center">Connexion</h4>
+                            <div class="alert alert-danger d-none" id="loginError"></div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" placeholder="votre@email.com" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Mot de passe</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">Se souvenir de moi</label>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="button" id="loginBtn" class="btn btn-primary">Se connecter</button>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <a href="#" id="forgotPasswordLink">Mot de passe oublié ?</a>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <div class="text-center">
+                                <p>Vous n'avez pas de compte ?</p>
+                                <button type="button" id="showRegisterFormBtn" class="btn btn-outline-primary">Créer un compte</button>
+                            </div>
+                            
+                            <!-- L'accès direct en mode développement a été supprimé pour renforcer la sécurité -->
+                        </div>
+                        
+                        <!-- Formulaire d'inscription (masqué par défaut) -->
+                        <div id="registerForm" class="d-none">
+                            <h4 class="mb-4 text-center">Créer un compte</h4>
+                            <div class="alert alert-danger d-none" id="registerError"></div>
+                            
+                            <div class="mb-3">
+                                <label for="registerName" class="form-label">Nom complet</label>
+                                <input type="text" class="form-control" id="registerName" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="registerEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="registerEmail" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="registerPassword" class="form-label">Mot de passe</label>
+                                <input type="password" class="form-control" id="registerPassword" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
+                                <input type="password" class="form-control" id="confirmPassword" required>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                                <label class="form-check-label" for="termsCheck">J'accepte les <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">conditions d'utilisation</a></label>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="button" id="registerBtn" class="btn btn-primary">S'inscrire</button>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <button type="button" id="showLoginFormBtn" class="btn btn-link">Retour à la connexion</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulaire de mot de passe oublié (masqué par défaut) -->
+                        <div id="forgotPasswordForm" class="d-none">
+                            <h4 class="mb-4 text-center">Réinitialisation du mot de passe</h4>
+                            <div class="alert alert-info mb-4">
+                                Entrez votre adresse email pour recevoir un lien de réinitialisation de mot de passe.
+                            </div>
+                            <div class="alert alert-danger d-none" id="forgotPasswordError"></div>
+                            <div class="alert alert-success d-none" id="forgotPasswordSuccess"></div>
+                            
+                            <div class="mb-3">
+                                <label for="resetEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="resetEmail" required>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="button" id="resetPasswordBtn" class="btn btn-primary">Envoyer le lien</button>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <button type="button" id="backToLoginBtn" class="btn btn-link">Retour à la connexion</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3 text-muted">
+                    <small>&copy; 2025 FastNetLite. Tous droits réservés.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal des conditions d'utilisation -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalLabel">Conditions d'utilisation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h5>1. Acceptation des conditions</h5>
+                    <p>En utilisant FastNetLite, vous acceptez d'être lié par ces conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser le service.</p>
+                    
+                    <h5>2. Description du service</h5>
+                    <p>FastNetLite est une plateforme SaaS permettant aux propriétaires de hotspots WiFi de gérer la vente de codes d'accès WiFi.</p>
+                    
+                    <h5>3. Comptes utilisateurs</h5>
+                    <p>Vous êtes responsable de maintenir la confidentialité de vos informations de compte et mot de passe.</p>
+                    
+                    <h5>4. Utilisation acceptable</h5>
+                    <p>Vous acceptez de ne pas utiliser le service pour des activités illégales ou non autorisées.</p>
+                    
+                    <h5>5. Modifications du service</h5>
+                    <p>Nous nous réservons le droit de modifier ou d'interrompre le service à tout moment, avec ou sans préavis.</p>
+                    
+                    <h5>6. Protection des données</h5>
+                    <p>Nous nous engageons à protéger vos données personnelles conformément à notre politique de confidentialité.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bundle principal -->
+    <script src="index.bundle.js"></script>
+    
+    <script>
+      // Code d'authentification pour la page d'accueil
+      document.addEventListener('DOMContentLoaded', async () => {
+        console.log('Page d\'index chargée');
+        
+        // Approche sécurisée pour éviter les boucles de redirection
+        try {
+          // Vérifier si l'utilisateur est connecté
+          if (typeof checkAuth === 'function') {
+            const user = await checkAuth();
+            const currentPath = window.location.pathname;
+            const isIndexPage = currentPath.includes('index.html') || currentPath === '/' || currentPath.endsWith('/');
+            
+            if (user && isIndexPage) {
+              // Rediriger vers le tableau de bord si l'utilisateur est déjà connecté
+              console.log('Utilisateur connecté, redirection vers dashboard');
+              window.location.href = 'dashboard.html';
+            }
+          }
+        } catch (error) {
+          console.error("Erreur lors de la vérification de l'authentification:", error);
+        }
+      });
+
+      // Initialisation de l'interface utilisateur
+      document.getElementById('loginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const rememberMe = document.getElementById('rememberMe').checked;
+        
+        if (!email || !password) {
+          document.getElementById('loginError').textContent = 'Veuillez remplir tous les champs';
+          document.getElementById('loginError').classList.remove('d-none');
+          return;
+        }
+        
+        try {
+          // Connexion avec email/mot de passe
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            // Utiliser l'API Firebase compat
+            await firebase.auth().signInWithEmailAndPassword(email, password);
+            window.location.href = 'dashboard.html';
+          } else if (typeof window.signInWithEmailAndPassword === 'function' && window.auth) {
+            // Utiliser l'API Firebase moderne exposée via window
+            await window.signInWithEmailAndPassword(window.auth, email, password);
+            window.location.href = 'dashboard.html';
+          } else {
+            throw new Error('Firebase Auth n\'est pas disponible');
+          }
+        } catch (error) {
+          let errorMessage = "Erreur de connexion: " + error.message;
+          document.getElementById('loginError').textContent = errorMessage;
+          document.getElementById('loginError').classList.remove('d-none');
+        }
+      });
+
+      // Vérifier si l'utilisateur est déjà connecté
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        // Utiliser l'API Firebase compat
+        firebase.auth().onAuthStateChanged((user) => {
+          if (user) {
+            // Rediriger vers le dashboard
+            window.location.href = 'dashboard.html';
+          }
+        });
+      } else if (typeof window.onAuthStateChanged === 'function' && window.auth) {
+        // Utiliser l'API Firebase moderne exposée via window
+        window.onAuthStateChanged(window.auth, (user) => {
+          if (user) {
+            // Rediriger vers le dashboard
+            window.location.href = 'dashboard.html';
+          }
+        });
+      }
+
+      // Gestionnaires pour les boutons de navigation entre formulaires
+      document.getElementById('showRegisterFormBtn')?.addEventListener('click', function() {
+        document.getElementById('loginForm').classList.add('d-none');
+        document.getElementById('registerForm').classList.remove('d-none');
+      });
+      
+      document.getElementById('showLoginFormBtn')?.addEventListener('click', function() {
+        document.getElementById('registerForm').classList.add('d-none');
+        document.getElementById('loginForm').classList.remove('d-none');
+      });
+      
+      document.getElementById('forgotPasswordLink')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('loginForm').classList.add('d-none');
+        document.getElementById('forgotPasswordForm').classList.remove('d-none');
+      });
+      
+      document.getElementById('backToLoginBtn')?.addEventListener('click', function() {
+        document.getElementById('forgotPasswordForm').classList.add('d-none');
+        document.getElementById('loginForm').classList.remove('d-none');
+        // Réinitialiser les messages
+        document.getElementById('forgotPasswordError').classList.add('d-none');
+        document.getElementById('forgotPasswordSuccess').classList.add('d-none');
+      });
+      
+      // Gestion du formulaire d'inscription
+      document.getElementById('registerBtn')?.addEventListener('click', async function() {
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const termsCheck = document.getElementById('termsCheck').checked;
+        
+        // Réinitialiser les erreurs
+        document.getElementById('registerError').classList.add('d-none');
+        
+        // Validation des champs
+        if (!name || !email || !password || !confirmPassword) {
+          document.getElementById('registerError').textContent = 'Veuillez remplir tous les champs';
+          document.getElementById('registerError').classList.remove('d-none');
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          document.getElementById('registerError').textContent = 'Les mots de passe ne correspondent pas';
+          document.getElementById('registerError').classList.remove('d-none');
+          return;
+        }
+        
+        if (!termsCheck) {
+          document.getElementById('registerError').textContent = 'Vous devez accepter les conditions d\'utilisation';
+          document.getElementById('registerError').classList.remove('d-none');
+          return;
+        }
+        
+        try {
+          // Création du compte avec Firebase
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            // Utiliser l'API Firebase compat
+            const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+            
+            // Créer le profil utilisateur dans Firestore
+            await firebase.firestore().collection('users').doc(user.uid).set({
+              name: name,
+              email: email,
+              createdAt: new Date().toISOString(),
+              role: 'user'
+            });
+            
+            // Rediriger vers le dashboard
+            window.location.href = 'dashboard.html';
+          } else if (typeof window.createUserWithEmailAndPassword === 'function' && window.auth && window.db) {
+            // Utiliser l'API Firebase moderne exposée via window
+            const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, password);
+            const user = userCredential.user;
+            
+            // Créer le profil utilisateur dans Firestore
+            await window.setDoc(window.doc(window.db, 'users', user.uid), {
+              name: name,
+              email: email,
+              createdAt: window.serverTimestamp(),
+              role: 'user'
+            });
+            
+            // Rediriger vers le dashboard
+            window.location.href = 'dashboard.html';
+          } else {
+            throw new Error('Firebase Auth n\'est pas disponible');
+          }
+        } catch (error) {
+          let errorMessage = "Erreur lors de l'inscription: " + error.message;
+          document.getElementById('registerError').textContent = errorMessage;
+          document.getElementById('registerError').classList.remove('d-none');
+        }
+      });
+      
+      // Gestion du formulaire de récupération de mot de passe
+      document.getElementById('resetPasswordBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('resetEmail').value;
+        
+        if (!email) {
+          document.getElementById('forgotPasswordError').textContent = 'Veuillez entrer votre adresse email';
+          document.getElementById('forgotPasswordError').classList.remove('d-none');
+          document.getElementById('forgotPasswordSuccess').classList.add('d-none');
+          return;
+        }
+        
+        try {
+          if (typeof firebase !== 'undefined' && firebase.auth) {
+            // Utiliser l'API Firebase compat
+            await firebase.auth().sendPasswordResetEmail(email);
+          } else if (typeof window.sendPasswordResetEmail === 'function' && window.auth) {
+            // Utiliser l'API Firebase moderne exposée via window
+            await window.sendPasswordResetEmail(window.auth, email);
+          } else {
+            throw new Error('Firebase Auth n\'est pas disponible');
+          }
+          
+          document.getElementById('forgotPasswordSuccess').textContent = 'Un email de réinitialisation a été envoyé à ' + email;
+          document.getElementById('forgotPasswordSuccess').classList.remove('d-none');
+          document.getElementById('forgotPasswordError').classList.add('d-none');
+          document.getElementById('resetEmail').value = '';
+        } catch (error) {
+          let errorMessage = "Erreur lors de l'envoi de l'email: " + error.message;
+          document.getElementById('forgotPasswordError').textContent = errorMessage;
+          document.getElementById('forgotPasswordError').classList.remove('d-none');
+          document.getElementById('forgotPasswordSuccess').classList.add('d-none');
+        }
+      });
+    </script>
+    
+    <!-- Tous les scripts personnalisés sont maintenant dans le bundle principal -->
+    <!-- Les outils de développement sont désactivés en production -->
+</body>
+</html>
+

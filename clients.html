@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clients - FastNetLite</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-wifi fa-2x text-primary"></i>
+                        <h5 class="text-white mt-2">FastNetLite</h5>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Tableau de bord
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="routers.html">
+                                <i class="fas fa-network-wired"></i>
+                                Mes Routeurs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="settings.html">
+                                <i class="fas fa-cog"></i>
+                                Paramètres
+                            </a>
+                        </li>
+                        <li class="nav-item mt-5">
+                            <a class="nav-link text-danger" href="#" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Déconnexion
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <hr class="text-white-50 my-4">
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Navigation routeur</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="routerDashboardLink">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Tableau de bord
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="routerWifiCodesLink">
+                                <i class="fas fa-key"></i>
+                                Codes WiFi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" id="routerClientsLink">
+                                <i class="fas fa-users"></i>
+                                Clients
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="routerPaymentsLink">
+                                <i class="fas fa-money-bill-wave"></i>
+                                Paiements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="routerSettingsLink">
+                                <i class="fas fa-cog"></i>
+                                Paramètres
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <div>
+                        <h1 class="h2">Clients</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="dashboard.html">Tableau de bord</a></li>
+                                <li class="breadcrumb-item"><a href="routers.html">Routeurs</a></li>
+                                <li class="breadcrumb-item"><a href="#" id="routerBreadcrumb">Routeur</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Clients</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="input-group me-2">
+                            <input type="text" class="form-control" id="searchClient" placeholder="Rechercher un client...">
+                            <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClientModal">
+                            <i class="fas fa-plus me-1"></i> Ajouter un client
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Statistiques clients -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Total clients</h6>
+                                        <h2 class="card-text" id="totalClients">0</h2>
+                                    </div>
+                                    <i class="fas fa-users fa-3x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Clients actifs</h6>
+                                        <h2 class="card-text" id="activeClients">0</h2>
+                                    </div>
+                                    <i class="fas fa-user-check fa-3x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Nouveaux clients</h6>
+                                        <h2 class="card-text" id="newClients">0</h2>
+                                    </div>
+                                    <i class="fas fa-user-plus fa-3x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Revenu moyen</h6>
+                                        <h2 class="card-text" id="averageRevenue">0 FCFA</h2>
+                                    </div>
+                                    <i class="fas fa-money-bill-wave fa-3x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Liste des clients -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>WhatsApp</th>
+                                        <th>Date d'inscription</th>
+                                        <th>Dernière activité</th>
+                                        <th>Codes achetés</th>
+                                        <th>Total dépensé</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientsList">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5" id="loadingClients">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Chargement...</span>
+                                            </div>
+                                            <p class="mt-2">Chargement des clients...</p>
+                                        </td>
+                                    </tr>
+                                    <tr class="d-none" id="noClientsMessage">
+                                        <td colspan="7" class="text-center py-5">
+                                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                            <h4>Aucun client trouvé</h4>
+                                            <p class="text-muted">Les clients apparaîtront ici une fois qu'ils auront acheté des codes WiFi</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <nav aria-label="Pagination des clients" class="d-flex justify-content-center mt-4">
+                            <ul class="pagination" id="clientsPagination">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Précédent</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Suivant</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <footer class="pt-5 d-flex justify-content-between">
+                    <span>Copyright © 2025 <a href="#">FastNetLite</a></span>
+                    <ul class="nav m-0">
+                        <li class="nav-item">
+                            <a class="nav-link text-secondary" href="#">Confidentialité</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-secondary" href="#">Conditions</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-secondary" href="#">Support</a>
+                        </li>
+                    </ul>
+                </footer>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modal d'ajout de client -->
+    <div class="modal fade" id="addClientModal" tabindex="-1" aria-labelledby="addClientModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addClientModalLabel">Ajouter un client</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addClientForm">
+                        <div class="alert alert-danger d-none" id="clientFormError"></div>
+                        
+                        <div class="mb-3">
+                            <label for="clientName" class="form-label">Nom complet</label>
+                            <input type="text" class="form-control" id="clientName" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="clientWhatsapp" class="form-label">Numéro WhatsApp</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fab fa-whatsapp"></i></span>
+                                <input type="tel" class="form-control" id="clientWhatsapp" placeholder="Ex: +229 97123456" required>
+                            </div>
+                            <div class="form-text">Format international recommandé (ex: +229 97123456)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="clientNote" class="form-label">Note (optionnel)</label>
+                            <textarea class="form-control" id="clientNote" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="saveClientBtn">
+                        <span class="spinner-border spinner-border-sm d-none" id="saveClientSpinner" role="status" aria-hidden="true"></span>
+                        Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de détails client -->
+    <div class="modal fade" id="clientDetailsModal" tabindex="-1" aria-labelledby="clientDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="clientDetailsModalLabel">Détails du client</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h4 id="detailClientName">Nom du client</h4>
+                            <p class="text-muted" id="detailClientWhatsapp">+229 97123456</p>
+                            <p class="mb-1"><strong>Date d'inscription:</strong> <span id="detailClientCreatedAt">01/01/2025</span></p>
+                            <p class="mb-1"><strong>Dernière activité:</strong> <span id="detailClientLastActivity">01/01/2025</span></p>
+                            <p class="mb-1"><strong>Total dépensé:</strong> <span id="detailClientTotalSpent">0 FCFA</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Note</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p id="detailClientNote" class="mb-0">Aucune note</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5 class="border-bottom pb-2 mb-3">Historique des achats</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Code</th>
+                                    <th>Profil</th>
+                                    <th>Montant</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientPurchasesList">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4" id="loadingPurchases">
+                                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                            <span class="visually-hidden">Chargement...</span>
+                                        </div>
+                                        <span class="ms-2">Chargement des achats...</span>
+                                    </td>
+                                </tr>
+                                <tr class="d-none" id="noPurchasesMessage">
+                                    <td colspan="5" class="text-center py-4">
+                                        <p class="text-muted mb-0">Aucun achat trouvé pour ce client</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary" id="editClientBtn">
+                        <i class="fas fa-edit me-1"></i> Modifier
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+
+    <!-- Bundle principal contenant tout le code JavaScript -->
+    <script src="clients.bundle.js"></script>
+    <!-- Tous les scripts personnalisés sont maintenant dans le bundle principal -->
+</body>
+</html>
+
+

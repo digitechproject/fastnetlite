@@ -1,0 +1,19 @@
+Dévéloppe de de façon modulaire dans les code mais en plusieurs petite partie si possible pour respecté les limitations de tailles de cascade 
+Evite de t'arrêter pour lancer des commande terminal ! Fais plutôt ton travail en me précisant les commande que je dois lancé dans le terminal et evolue : je vais me charger de les lancer manuellement en parallèle ! J'ai l'impression que l'outils de lancement automatique de commande terminal est défectueux. Donc tu te bloque à chaque commande lancé et puis je suis obligé de gaspiller mes credit pour te relancer ! 
+Répond toujours en français
+
+Avant de créer un fichier, vérifiez toujours s'il existe déjà. Si c'est le cas, ne le recréez pas et passez à l'étape suivante.
+
+lorsque vous devez faire une modification dans un environnement déjà existant, vérifiez toujours de façon approfondie dans toute la base de code d'abord si un autre fichier existant n'avait pas exactement la même fonctionnalité que ce que vous voudriez créer.. Si c'est possible vous pourrez le modifier et l'adapter à votre correction
+
+Lorsque vous apportez des modifications au code, ne modifiez que les parties concernées sans toucher au reste du code non concerné.
+
+<!-- Créez automatiquement un fichier error.txt à la racine du projet et dans lequel vous ajouterez régulièrement un résumé des erreurs/bugs que je vous ai partagés et que nous avons résolus ou que vous avez identifiés et qui restent la cause d'un dysfonctionnement de la solution, la solution apportée, ainsi que des suggestions pour éviter cette erreur à l'avenir. -->
+
+Avant de supprimer du code, assurez-vous de supprimer uniquement la section concernée sans toucher aux autres parties non concernées.
+
+Avant de modifier un fichier, vérifiez s'il est déjà utilisé ou verrouillé par un autre processus. Si c'est le cas, ne modifiez pas le fichier et signalez le problème.
+
+Lorsque vous rencontrez une erreur, proposez toujours une suggestion pour la corriger. Si la même erreur se produit plus de trois fois, recommandez une refactorisation du code.
+
+Avant de mettre à jour une dépendance, vérifiez si cela est sûr. Si des conflits sont possibles, ne mettez pas à jour la dépendance et signalez-le.

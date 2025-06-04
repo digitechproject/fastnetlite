@@ -1,0 +1,494 @@
+{
+  "collections": {
+    "users": [
+      {
+        "id": "user1",
+        "name": "Administrateur",
+        "email": "admin@fastnetlite.com",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-01T00:00:00Z"
+        },
+        "status": "active",
+        "role": "admin"
+      },
+      {
+        "id": "user2",
+        "name": "Vendeur Test",
+        "email": "vendeur@fastnetlite.com",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-15T00:00:00Z"
+        },
+        "status": "active",
+        "role": "vendor"
+      }
+    ],
+    "routers": [
+      {
+        "id": "router1",
+        "userId": "user1",
+        "name": "Cyber Café Central",
+        "description": "Routeur principal du cyber café",
+        "location": "Centre-ville",
+        "status": "active",
+        "fedapayApiKey": "pk_sandbox_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "testMode": true,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-02T10:00:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-02T10:00:00Z"
+        }
+      },
+      {
+        "id": "router2",
+        "userId": "user1",
+        "name": "Restaurant WiFi",
+        "description": "Routeur pour le restaurant",
+        "location": "Zone commerciale",
+        "status": "active",
+        "fedapayApiKey": "pk_sandbox_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "testMode": true,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-05T14:30:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-05T14:30:00Z"
+        }
+      },
+      {
+        "id": "router3",
+        "userId": "user2",
+        "name": "Hôtel Connexion",
+        "description": "Routeur pour l'hôtel",
+        "location": "Zone touristique",
+        "status": "active",
+        "fedapayApiKey": "pk_sandbox_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "testMode": true,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-15T16:00:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-15T16:00:00Z"
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "id": "profile1",
+        "routerId": "router1",
+        "name": "Journalier",
+        "description": "Accès Internet pour une journée",
+        "duration": "1 jour",
+        "price": 1500,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-02T11:00:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-02T11:00:00Z"
+        }
+      },
+      {
+        "id": "profile2",
+        "routerId": "router1",
+        "name": "Hebdomadaire",
+        "description": "Accès Internet pour une semaine",
+        "duration": "7 jours",
+        "price": 5000,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-02T11:05:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-02T11:05:00Z"
+        }
+      },
+      {
+        "id": "profile3",
+        "routerId": "router1",
+        "name": "Mensuel",
+        "description": "Accès Internet pour un mois",
+        "duration": "30 jours",
+        "price": 15000,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-02T11:10:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-02T11:10:00Z"
+        }
+      },
+      {
+        "id": "profile4",
+        "routerId": "router2",
+        "name": "Journalier",
+        "description": "Accès Internet pour une journée",
+        "duration": "1 jour",
+        "price": 1000,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-05T15:00:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-05T15:00:00Z"
+        }
+      },
+      {
+        "id": "profile5",
+        "routerId": "router2",
+        "name": "Hebdomadaire",
+        "description": "Accès Internet pour une semaine",
+        "duration": "7 jours",
+        "price": 4000,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-05T15:05:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-05T15:05:00Z"
+        }
+      },
+      {
+        "id": "profile6",
+        "routerId": "router3",
+        "name": "Journalier",
+        "description": "Accès Internet pour une journée",
+        "duration": "1 jour",
+        "price": 2000,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-15T16:30:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-15T16:30:00Z"
+        }
+      },
+      {
+        "id": "profile7",
+        "routerId": "router3",
+        "name": "Séjour",
+        "description": "Accès Internet pour la durée du séjour (3 jours)",
+        "duration": "3 jours",
+        "price": 5000,
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-15T16:35:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-15T16:35:00Z"
+        }
+      }
+    ],
+    "wifiCodes": [
+      {
+        "id": "code1",
+        "routerId": "router1",
+        "profileId": "profile1",
+        "profileName": "Journalier",
+        "username": "user1234",
+        "password": "pass5678",
+        "status": "available",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-03T09:00:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-03T09:00:00Z"
+        }
+      },
+      {
+        "id": "code2",
+        "routerId": "router1",
+        "profileId": "profile1",
+        "profileName": "Journalier",
+        "username": "user2345",
+        "password": "pass6789",
+        "status": "available",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-03T09:01:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-03T09:01:00Z"
+        }
+      },
+      {
+        "id": "code3",
+        "routerId": "router1",
+        "profileId": "profile2",
+        "profileName": "Hebdomadaire",
+        "username": "user3456",
+        "password": "pass7890",
+        "status": "available",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-03T09:02:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-03T09:02:00Z"
+        }
+      },
+      {
+        "id": "code4",
+        "routerId": "router1",
+        "profileId": "profile3",
+        "profileName": "Mensuel",
+        "username": "user4567",
+        "password": "pass8901",
+        "status": "available",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-03T09:03:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-03T09:03:00Z"
+        }
+      },
+      {
+        "id": "code5",
+        "routerId": "router1",
+        "profileId": "profile1",
+        "profileName": "Journalier",
+        "username": "user5678",
+        "password": "pass9012",
+        "status": "sold",
+        "soldAt": {
+          "__type": "timestamp",
+          "value": "2025-01-10T14:30:00Z"
+        },
+        "clientId": "client1",
+        "clientName": "Jean Dupont",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-03T09:04:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-10T14:30:00Z"
+        }
+      },
+      {
+        "id": "code6",
+        "routerId": "router2",
+        "profileId": "profile4",
+        "profileName": "Journalier",
+        "username": "user6789",
+        "password": "pass0123",
+        "status": "available",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-06T10:00:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-06T10:00:00Z"
+        }
+      },
+      {
+        "id": "code7",
+        "routerId": "router2",
+        "profileId": "profile5",
+        "profileName": "Hebdomadaire",
+        "username": "user7890",
+        "password": "pass1234",
+        "status": "available",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-06T10:01:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-06T10:01:00Z"
+        }
+      },
+      {
+        "id": "code8",
+        "routerId": "router3",
+        "profileId": "profile6",
+        "profileName": "Journalier",
+        "username": "user8901",
+        "password": "pass2345",
+        "status": "available",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-16T09:00:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-16T09:00:00Z"
+        }
+      },
+      {
+        "id": "code9",
+        "routerId": "router3",
+        "profileId": "profile7",
+        "profileName": "Séjour",
+        "username": "user9012",
+        "password": "pass3456",
+        "status": "available",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-16T09:01:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-16T09:01:00Z"
+        }
+      },
+      {
+        "id": "code10",
+        "routerId": "router3",
+        "profileId": "profile6",
+        "profileName": "Journalier",
+        "username": "user0123",
+        "password": "pass4567",
+        "status": "sold",
+        "soldAt": {
+          "__type": "timestamp",
+          "value": "2025-01-20T11:15:00Z"
+        },
+        "clientId": "client3",
+        "clientName": "Sophie Adeyemi",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-16T09:02:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-20T11:15:00Z"
+        }
+      }
+    ],
+    "clients": [
+      {
+        "id": "client1",
+        "routerId": "router1",
+        "name": "Jean Dupont",
+        "whatsapp": "+229 97123456",
+        "email": "jean.dupont@example.com",
+        "address": "Cotonou, Bénin",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-10T14:25:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-10T14:25:00Z"
+        },
+        "lastActivity": {
+          "__type": "timestamp",
+          "value": "2025-01-10T14:30:00Z"
+        },
+        "purchasedCodes": 1,
+        "totalSpent": 1500
+      },
+      {
+        "id": "client2",
+        "routerId": "router1",
+        "name": "Marie Koné",
+        "whatsapp": "+229 96789012",
+        "email": "marie.kone@example.com",
+        "address": "Cotonou, Bénin",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-15T09:15:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-15T09:15:00Z"
+        },
+        "lastActivity": {
+          "__type": "timestamp",
+          "value": "2025-01-15T09:15:00Z"
+        },
+        "purchasedCodes": 0,
+        "totalSpent": 0
+      },
+      {
+        "id": "client3",
+        "routerId": "router3",
+        "name": "Sophie Adeyemi",
+        "whatsapp": "+229 99901234",
+        "email": "sophie.adeyemi@example.com",
+        "address": "Cotonou, Bénin",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-20T11:10:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-20T11:10:00Z"
+        },
+        "lastActivity": {
+          "__type": "timestamp",
+          "value": "2025-01-20T11:15:00Z"
+        },
+        "purchasedCodes": 1,
+        "totalSpent": 2000
+      }
+    ],
+    "payments": [
+      {
+        "id": "payment1",
+        "routerId": "router1",
+        "clientId": "client1",
+        "clientName": "Jean Dupont",
+        "profileId": "profile1",
+        "profileName": "Journalier",
+        "code": "user5678",
+        "amount": 1500,
+        "method": "cash",
+        "status": "completed",
+        "note": "Premier achat",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-10T14:30:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-10T14:30:00Z"
+        }
+      },
+      {
+        "id": "payment2",
+        "routerId": "router3",
+        "clientId": "client3",
+        "clientName": "Sophie Adeyemi",
+        "profileId": "profile6",
+        "profileName": "Journalier",
+        "code": "user0123",
+        "amount": 2000,
+        "method": "mobile_money",
+        "status": "completed",
+        "note": "Paiement par mobile money",
+        "createdAt": {
+          "__type": "timestamp",
+          "value": "2025-01-20T11:15:00Z"
+        },
+        "updatedAt": {
+          "__type": "timestamp",
+          "value": "2025-01-20T11:15:00Z"
+        }
+      }
+    ]
+  }
+}
