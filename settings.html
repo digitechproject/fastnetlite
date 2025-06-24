@@ -8,51 +8,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Navigation CSS -->
+    <link rel="stylesheet" href="./components/navigation.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+    <!-- Conteneur pour la navigation dynamique -->
+    <div id="navigation-container"></div>
+    
     <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
-                <div class="position-sticky pt-3">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-wifi fa-2x text-primary"></i>
-                        <h5 class="text-white mt-2">FastNetLite</h5>
-                    </div>
-                    
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="dashboard.html">
-                                <i class="fas fa-tachometer-alt"></i>
-                                Tableau de bord
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="routers.html">
-                                <i class="fas fa-network-wired"></i>
-                                Mes Routeurs
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="settings.html">
-                                <i class="fas fa-cog"></i>
-                                Paramètres
-                            </a>
-                        </li>
-                        <li class="nav-item mt-5">
-                            <a class="nav-link text-danger" href="#" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt"></i>
-                                Déconnexion
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+        <!-- Main content -->
+        <main class="px-md-4 py-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Paramètres</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
@@ -80,6 +47,11 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="subscription-tab" data-bs-toggle="tab" data-bs-target="#subscription" type="button" role="tab" aria-controls="subscription" aria-selected="false">
                             <i class="fas fa-key me-2"></i>Licence
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="mikrotik-tab" data-bs-toggle="tab" data-bs-target="#mikrotik" type="button" role="tab" aria-controls="mikrotik" aria-selected="false">
+                            <i class="fas fa-network-wired me-2"></i>Intégration Mikrotik
                         </button>
                     </li>
                 </ul>
@@ -225,50 +197,9 @@
                                 <div class="alert alert-info mt-3">
                                     <i class="fas fa-info-circle me-2"></i>
                                     La licence est valable pour une durée d'un an à partir de la date d'activation. Après paiement, vous recevrez une clé de licence que vous pourrez activer immédiatement ou conserver pour une activation ultérieure.
-                        
-                        <!-- <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Informations de facturation</h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="billingForm">
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="billingName" class="form-label">Nom sur la carte</label>
-                                            <input type="text" class="form-control" id="billingName" placeholder="Nom complet">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="billingPhone" class="form-label">Téléphone</label>
-                                            <input type="tel" class="form-control" id="billingPhone" placeholder="Numéro de téléphone">
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="billingAddress" class="form-label">Adresse</label>
-                                        <input type="text" class="form-control" id="billingAddress" placeholder="Adresse de facturation">
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="billingCity" class="form-label">Ville</label>
-                                            <input type="text" class="form-control" id="billingCity" placeholder="Ville">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="billingCountry" class="form-label">Pays</label>
-                                            <select class="form-select" id="billingCountry">
-                                                <option value="">Sélectionnez un pays</option>
-                                                <option value="BJ">Bénin</option>
-                                                <option value="BF">Burkina Faso</option>
-                                                <option value="CI">Côte d'Ivoire</option>
-                                                <option value="ML">Mali</option>
-                                                <option value="NE">Niger</option>
-                                                <option value="SN">Sénégal</option>
-                                                <option value="TG">Togo</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary" id="saveBillingBtn">Enregistrer les informations de facturation</button>
-                                </form>
-                            </div>
-                        </div> -->
+                                </div> 
+                            </div> 
+                        </div>
                         
                         <div class="card mb-4">
                             <div class="card-header">
@@ -297,17 +228,75 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Onglet Intégration Mikrotik -->
+                    <div class="tab-pane fade" id="mikrotik" role="tabpanel" aria-labelledby="mikrotik-tab">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Configuration du Walled Garden IP Mikrotik</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-3">
+                                    Pour permettre à vos clients d'accéder à FastNetLite depuis la page de connexion du hotspot Mikrotik, vous devez ajouter les règles suivantes dans votre routeur Mikrotik. 
+                                    Ces règles permettent d'autoriser l'accès à FastNetLite et aux services associés (Firebase, FedaPay, etc.) sans nécessiter d'authentification.
+                                </p>
+                                
+                                <div class="alert alert-info mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Les commandes ci-dessous sont prêtes à être copiées et collées dans votre routeur Mikrotik.
+                                </div>
+                                
+                                <div class="position-relative">
+             <pre class="bg-dark text-light p-3 rounded" id="mikrotikCommands" style="max-height: 400px; overflow-y: auto;">
+                # Règles pour le domaine principal hébergeant FastNetLite
+                /ip hotspot walled-garden ip 
+                add action=accept  comment="FASTNETLITE" dst-host=fastnetlite.vercel.app dst-port=443 protocol=tcp 
+                                        
+                # Règles pour FedaPay (système de paiement)
+                add action=accept comment="FedaPay Sandbox API" dst-host=sandbox-api.fedapay.com
+                add action=accept comment="FedaPay Sandbox Process" dst-host=sandbox-process.fedapay.com
+                add action=accept comment="FedaPay Sandbox Checkout" dst-host=sandbox-checkout.fedapay.com
+                add action=accept comment="FedaPay Live API" dst-host=api.fedapay.com
+                add action=accept comment="FedaPay Live Process" dst-host=process.fedapay.com
+                add action=accept comment="FedaPay Live Checkout" dst-host=checkout.fedapay.com
+
+                # Règles pour Firebase (base de données et authentification)
+                add action=accept comment="FIREBASEIO" dst-host=*.firebaseio.com
+                add action=accept comment="FIRESTORE API" dst-host=firestore.googleapis.com
+                add action=accept comment="FIREBASEAPP" dst-host=*.firebaseapp.com
+                add action=accept comment="FIREBASE API" dst-host=firebase.googleapis.com
+                add action=accept dst-host=identitytoolkit.googleapis.com
+
+                # Règles pour les CDN utilisés par la page
+                add action=accept dst-host=cdn.jsdelivr.net
+                add action=accept dst-host=cdnjs.cloudflare.com
+            </pre>
+            <button class="btn btn-primary position-absolute top-0 end-0 m-2" id="copyMikrotikCommands">
+                <i class="fas fa-copy me-1"></i> Copier
+            </button>
+        </div>
+                                
+                                <div class="alert alert-warning mt-3">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Après avoir ajouté ces règles, redémarrez le service hotspot de votre routeur Mikrotik pour appliquer les changements.
+                                </div>
+                                
+                                <h5 class="mt-4 mb-3">Configuration des liens d'achat pour vos profils</h5>
+                                <p class="mb-3">
+                                    Pour configurer les boutons d'achat sur votre portail captif Mikrotik, utilisez les liens ci-dessous pour chaque profil. 
+                                    Ces liens permettent à vos clients d'acheter directement des codes WiFi pour le profil sélectionné.
+                                </p>
+                                
+                                <div id="profileBuyLinks" class="mb-4">
+                                    <div class="alert alert-info text-center">
+                                        <i class="fas fa-spinner fa-spin me-2"></i> Chargement des profils...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Fin des onglets -->
                 </div>
-                
-                <!-- Footer -->
-                <footer class="pt-5 d-flex justify-content-between">
-                    <span>Copyright © 2025 <a href="#">FastNetLite</a></span>
-                    <ul class="nav">
-                        <li class="nav-item"><a href="#" class="nav-link">Conditions d'utilisation</a></li>
-                        <li class="nav-item"><a href="#" class="nav-link">Confidentialité</a></li>
-                        <li class="nav-item"><a href="#" class="nav-link">Support</a></li>
-                    </ul>
-                </footer>
             </main>
         </div>
     </div>
@@ -338,7 +327,57 @@
     <!-- Script FedaPay -->
     <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
     
+    <!-- Script de navigation -->
+    <script src="./components/navigation.js"></script>
+    
     <!-- Scripts personnalisés -->
     <script type="module" src="settings.js"></script>
+    
+    <!-- Script pour la gestion du bouton de copie -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurer le bouton de copie pour les commandes Mikrotik
+            const copyButton = document.getElementById('copyMikrotikCommands');
+            const mikrotikCommands = document.getElementById('mikrotikCommands');
+            
+            if (copyButton && mikrotikCommands) {
+                copyButton.addEventListener('click', function() {
+                    // Copier le texte dans le presse-papier
+                    const commandText = mikrotikCommands.textContent;
+                    
+                    navigator.clipboard.writeText(commandText)
+                        .then(() => {
+                            // Feedback visuel
+                            const originalText = copyButton.innerHTML;
+                            copyButton.innerHTML = '<i class="fas fa-check me-1"></i> Copié!';
+                            copyButton.classList.remove('btn-primary');
+                            copyButton.classList.add('btn-success');
+                            
+                            // Restaurer après 2 secondes
+                            setTimeout(() => {
+                                copyButton.innerHTML = originalText;
+                                copyButton.classList.remove('btn-success');
+                                copyButton.classList.add('btn-primary');
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            console.error('Erreur lors de la copie:', err);
+                            alert('Erreur lors de la copie. Veuillez réessayer.');
+                        });
+                });
+            }
+            
+            // Vérifier si un onglet spécifique est demandé dans l'URL
+            const hash = window.location.hash;
+            if (hash) {
+                // Activer l'onglet correspondant via l'API Bootstrap
+                const tabEl = document.querySelector(`a[href="${hash}"], button[data-bs-target="${hash}"]`);
+                if (tabEl) {
+                    const tab = new bootstrap.Tab(tabEl);
+                    tab.show();
+                }
+            }
+        });
+    </script>
 </body>
 </html>

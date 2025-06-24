@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "."
+		},
+		{
+			"path": "../Tourbillon Test/FASTNET-TOURBILLON"
 		}
 	],
 	"settings": {

@@ -77,10 +77,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const routerId = urlParams.get('id');
             
+            // Vérifier si l'ID du routeur est présent
             if (!routerId) {
                 console.error('ID du routeur non spécifié');
-                alert('ID du routeur non spécifié');
-                window.location.href = 'routers.html';
+                // Vérifier si nous sommes dans un contexte de navigation
+                const isNavigationEvent = sessionStorage.getItem('isRouterNavigation');
+                
+                // Si ce n'est pas un événement de navigation, rediriger vers la liste des routeurs
+                if (!isNavigationEvent) {
+                    alert('ID du routeur non spécifié');
+                    window.location.href = 'routers.html';
+                    return;
+                }
+                
+                // Réinitialiser le flag de navigation
+                sessionStorage.removeItem('isRouterNavigation');
                 return;
             }
             
@@ -910,6 +921,24 @@ function updateNavigationLinks(routerId) {
                 if (href && !href.includes('?id=')) {
                     linkElement.href = `${href}?id=${routerId}`;
                 }
+            }
+        });
+        
+        // Mettre à jour les liens de navigation mobile (bottom bar)
+        const mobileLinks = {
+            'routerDashboardLinkMobile': 'router-dashboard.html',
+            'routerWifiCodesLinkMobile': 'wifi-codes.html',
+            'routerClientsLinkMobile': 'clients.html',
+            'routerPaymentsLinkMobile': 'payments.html',
+            'routerSettingsLinkMobile': 'router-settings.html'
+        };
+        
+        // Pour chaque lien mobile, mettre à jour l'attribut href
+        Object.entries(mobileLinks).forEach(([id, url]) => {
+            const link = document.getElementById(id);
+            if (link) {
+                link.href = `${url}?id=${routerId}`;
+                console.log(`Lien mobile mis à jour: ${id} -> ${url}?id=${routerId}`);
             }
         });
     } catch (error) {

@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "Plateforme de gestion de codes WiFi",
   "main": "index.js",
-  "scripts": {
-    "start": "webpack serve --mode development",
-    "build": "webpack --mode production",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "clean": "rimraf dist .webpack-cache",
+  "start": "npm run clean && webpack serve --mode development",
+  "build": "webpack --mode production",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
   "keywords": [
     "wifi",
     "codes",

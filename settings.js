@@ -919,29 +919,239 @@ function viewInvoice(paymentId) {
 
 // Fonction pour initialiser les gestionnaires d'événements
 function initEventListeners() {
-    // Gestionnaires d'événements pour le profil
-    profileForm.addEventListener('submit', saveProfile);
-    passwordForm.addEventListener('submit', changePassword);
+    // Gestionnaires pour le profil
+    if (profileForm) profileForm.addEventListener('submit', saveProfile);
+    if (passwordForm) passwordForm.addEventListener('submit', changePassword);
     
-    // Gestionnaires d'événements pour la facturation - désactivés
-    // if (billingInfoForm) {
-    //     billingInfoForm.addEventListener('submit', saveBillingInfo);
-    // }
+    // Gestionnaires pour la déconnexion
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    if (logoutBtnDropdown) logoutBtnDropdown.addEventListener('click', logout);
     
-    // Gestionnaires d'événements pour la licence
+    // Gestionnaires pour l'abonnement et la licence
     setupLicenseEventHandlers();
     
-    // Afficher les plans de licence disponibles
-    displayLicensePlans();
+    // Gestionnaires pour la facturation
+    if (billingForm) billingForm.addEventListener('submit', saveBillingInfo);
     
-    // Conserver les gestionnaires pour l'abonnement pour compatibilité temporaire
-    if (cancelSubscriptionBtn) {
-        cancelSubscriptionBtn.addEventListener('click', () => {
-            const cancelModal = new bootstrap.Modal(document.getElementById('cancelSubscriptionModal'));
-            cancelModal.show();
+    // Gestionnaire pour l'intégration Mikrotik
+    loadProfileBuyLinks();
+}
+
+/**
+ * Charge et affiche les liens d'achat pour chaque profil dans l'onglet Mikrotik
+ */
+async function loadProfileBuyLinks() {
+    const profileBuyLinksContainer = document.getElementById('profileBuyLinks');
+    if (!profileBuyLinksContainer) return;
+    
+    try {
+        // Récupérer tous les routeurs de l'utilisateur
+        const routersRef = collection(db, 'routers');
+        const routersQuery = query(routersRef, where('userId', '==', currentUser.uid));
+        const routersSnapshot = await getDocs(routersQuery);
+        
+        if (routersSnapshot.empty) {
+            profileBuyLinksContainer.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Aucun routeur trouvé. Ajoutez d'abord un routeur pour configurer les liens d'achat.
+                </div>
+            `;
+            return;
+        }
+        
+        // Conteneur pour stocker tous les profils de tous les routeurs
+        let allProfiles = [];
+        
+        // Pour chaque routeur, récupérer ses profils
+        for (const routerDoc of routersSnapshot.docs) {
+            const routerId = routerDoc.id;
+            const router = routerDoc.data();
+            
+            const profilesRef = collection(db, 'profiles');
+            const profilesQuery = query(profilesRef, where('routerId', '==', routerId));
+            const profilesSnapshot = await getDocs(profilesQuery);
+            
+            if (!profilesSnapshot.empty) {
+                profilesSnapshot.forEach(profileDoc => {
+                    allProfiles.push({
+                        id: profileDoc.id,
+                        routerId: routerId,
+                        routerName: router.name,
+                        ...profileDoc.data()
+                    });
+                });
+            }
+        }
+        
+        // Afficher les profils et leurs liens d'achat
+        if (allProfiles.length === 0) {
+            profileBuyLinksContainer.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Aucun profil trouvé. Créez d'abord des profils dans la section "Codes WiFi" de vos routeurs.
+                </div>
+            `;
+            return;
+        }
+        
+        // Trier les profils par routeur puis par nom
+        allProfiles.sort((a, b) => {
+            // Vérifier si les noms de routeur existent
+            const routerNameA = a.routerName || '';
+            const routerNameB = b.routerName || '';
+            
+            if (routerNameA !== routerNameB) {
+                return routerNameA.localeCompare(routerNameB);
+            }
+            
+            // Vérifier si les noms de profil existent
+            const profileNameA = a.name || '';
+            const profileNameB = b.name || '';
+            return profileNameA.localeCompare(profileNameB);
         });
+        
+        // Générer le HTML pour chaque profil
+        let currentRouterId = null;
+        let html = '';
+        
+        allProfiles.forEach(profile => {
+            // Ajouter un séparateur pour chaque nouveau routeur
+            if (profile.routerId !== currentRouterId) {
+                currentRouterId = profile.routerId;
+                html += `
+                    <h6 class="mt-3 mb-2 text-muted">Routeur: ${profile.routerName}</h6>
+                `;
+            }
+            
+            // Générer l'URL d'achat pour ce profil
+            const buyUrl = `${window.location.origin}/profilbuy-code.html?routerId=${profile.routerId}&profileId=${profile.id}`;
+            
+            // Créer un snippet de code avec bouton de copie pour ce profil
+            html += `
+                <div class="card mb-2">
+                    <div class="card-header py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">${profile.name}</span>
+                            <span class="badge bg-primary">${profile.price} FCFA</span>
+                        </div>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="position-relative">
+                            <pre class="bg-dark text-light p-2 rounded mb-0" style="font-size: 0.85rem;">${buyUrl}</pre>
+                            <button class="btn btn-sm btn-primary position-absolute top-0 end-0 m-1 copy-link-btn" 
+                                    data-profile-id="${profile.id}" 
+                                    data-router-id="${profile.routerId}" 
+                                    data-profile-name="${profile.name}">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        // Mettre à jour le conteneur
+        profileBuyLinksContainer.innerHTML = html;
+        
+        // Ajouter les gestionnaires d'événements pour les boutons de copie
+        document.querySelectorAll('.copy-link-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const profileId = this.getAttribute('data-profile-id');
+                const routerId = this.getAttribute('data-router-id');
+                const profileName = this.getAttribute('data-profile-name');
+                
+                copyProfileBuyLink(profileId, routerId, profileName, this);
+            });
+        });
+        
+    } catch (error) {
+        console.error('Erreur lors du chargement des liens d\'achat des profils:', error);
+        profileBuyLinksContainer.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Erreur lors du chargement des profils. Veuillez réessayer.
+            </div>
+        `;
     }
+}
+
+/**
+ * Copie le lien d'achat d'un profil dans le presse-papier
+ * @param {string} profileId - ID du profil
+ * @param {string} routerId - ID du routeur
+ * @param {string} profileName - Nom du profil
+ * @param {HTMLElement} button - Bouton de copie qui a été cliqué
+ */
+function copyProfileBuyLink(profileId, routerId, profileName, button) {
+    // Créer l'URL d'achat
+    const buyUrl = `${window.location.origin}/profilbuy-code.html?routerId=${routerId}&profileId=${profileId}`;
     
+    // Vérifier si l'API Clipboard est disponible
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        // Méthode moderne avec l'API Clipboard
+        navigator.clipboard.writeText(buyUrl)
+            .then(() => {
+                // Feedback visuel sur le bouton
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-success');
+                
+                // Message de succès
+                const alertElement = document.createElement('div');
+                alertElement.className = 'alert alert-success mt-2 mb-0 py-1 px-2 small';
+                alertElement.innerHTML = `Lien copié pour "${profileName}"`;
+                button.closest('.card-body').appendChild(alertElement);
+                
+                // Restaurer après 2 secondes
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-primary');
+                    
+                    // Supprimer le message après un délai
+                    setTimeout(() => {
+                        if (alertElement.parentNode) {
+                            alertElement.parentNode.removeChild(alertElement);
+                        }
+                    }, 1000);
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Erreur lors de la copie du lien:', err);
+                alert(`Erreur lors de la copie du lien pour "${profileName}". Veuillez réessayer.`);
+            });
+    } else {
+        // Méthode de secours pour les navigateurs qui ne supportent pas l'API Clipboard
+        try {
+            const textArea = document.createElement('textarea');
+            textArea.value = buyUrl;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            // Feedback visuel
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i>';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-success');
+            
+            // Restaurer après 2 secondes
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-primary');
+            }, 2000);
+        } catch (err) {
+            console.error('Erreur lors de la copie du lien (méthode de secours):', err);
+            alert(`Erreur lors de la copie du lien pour "${profileName}". Veuillez réessayer.`);
+        }
+    }
+}
+    
+    // Autres gestionnaires d'événements (conservation pour compatibilité)
     if (confirmCancelSubscriptionBtn) {
         confirmCancelSubscriptionBtn.addEventListener('click', cancelSubscription);
     }
@@ -954,9 +1164,10 @@ function initEventListeners() {
     }
     
     // Gestionnaires d'événements pour les boutons de sélection de plan
-    selectPlanBtns.forEach(btn => {
-        btn.addEventListener('click', () => selectPlan(btn.dataset.plan));
-    });
+    if (selectPlanBtns) {
+        selectPlanBtns.forEach(btn => {
+            btn.addEventListener('click', () => selectPlan(btn.dataset.plan));
+        });
     
     // Gestionnaires d'événements pour la facturation - désactivés
     // billingForm.addEventListener('submit', saveBillingInfo);
@@ -1080,8 +1291,14 @@ async function loadFedaPayApiKey() {
     }
 }
 
+// La fonction setupMikrotikIntegration a été déplacée directement dans settings.html
+// pour éviter les problèmes de chargement et simplifier la gestion de l'onglet Mikrotik
+
 // Initialisation de l'application
 document.addEventListener('DOMContentLoaded', async () => {
+    // Configurer l'intégration Mikrotik dès le chargement de la page
+    // setupMikrotikIntegration();
+    
     // Vérifier si l'utilisateur est connecté
     onAuthStateChanged(auth, async (user) => {
         if (user) {

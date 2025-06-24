@@ -70,8 +70,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Vérifier si l'ID du routeur est présent
     if (!routerId) {
-        // Rediriger vers la liste des routeurs si aucun ID n'est fourni
-        window.location.href = 'routers.html';
+        // Vérifier si nous sommes dans un contexte de navigation
+        const isNavigationEvent = sessionStorage.getItem('isRouterNavigation');
+        
+        // Si ce n'est pas un événement de navigation, rediriger vers la liste des routeurs
+        if (!isNavigationEvent) {
+            console.warn('ID du routeur non spécifié, redirection vers la liste des routeurs');
+            window.location.href = 'routers.html';
+            return;
+        }
+        
+        // Réinitialiser le flag de navigation
+        sessionStorage.removeItem('isRouterNavigation');
         return;
     }
     

@@ -63,7 +63,24 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Initialisation de router-settings.js');
     // Récupérer l'ID du routeur depuis l'URL
     const urlParams = new URLSearchParams(window.location.search);
-    const routerId = urlParams.get('id') || 'mock-id-0'; // Valeur par défaut pour le développement
+    const routerId = urlParams.get('id');
+    
+    // Vérifier si l'ID du routeur est présent
+    if (!routerId) {
+        // Vérifier si nous sommes dans un contexte de navigation
+        const isNavigationEvent = sessionStorage.getItem('isRouterNavigation');
+        
+        // Si ce n'est pas un événement de navigation, rediriger vers la liste des routeurs
+        if (!isNavigationEvent) {
+            console.warn('ID du routeur non spécifié, redirection vers la liste des routeurs');
+            window.location.href = 'routers.html';
+            return;
+        }
+        
+        // Réinitialiser le flag de navigation
+        sessionStorage.removeItem('isRouterNavigation');
+        return;
+    }
     
     // Initialiser la page
     initPage(routerId);

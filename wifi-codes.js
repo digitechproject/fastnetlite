@@ -74,8 +74,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Vérifier si l'ID du routeur est présent
             if (!routerId) {
-                // Rediriger vers la liste des routeurs si aucun ID n'est fourni
-                window.location.href = 'routers.html';
+                // Vérifier si nous sommes dans un contexte de navigation
+                const isNavigationEvent = sessionStorage.getItem('isRouterNavigation');
+                
+                // Si ce n'est pas un événement de navigation, rediriger vers la liste des routeurs
+                if (!isNavigationEvent) {
+                    console.warn('ID du routeur non spécifié, redirection vers la liste des routeurs');
+                    window.location.href = 'routers.html';
+                    return;
+                }
+                
+                // Réinitialiser le flag de navigation
+                sessionStorage.removeItem('isRouterNavigation');
                 return;
             }
             
@@ -153,6 +163,9 @@ function initPage(routerId, needsLicense = false) {
     
     // Configurer les gestionnaires d'événements pour les filtres
     setupFilterHandlers(routerId, needsLicense);
+    
+    // Configurer les gestionnaires d'événements pour la suppression en masse
+    setupBatchDeleteHandlers(routerId, needsLicense);
     
     // Si l'utilisateur n'a pas de licence active, désactiver certaines fonctionnalités premium
     if (needsLicense) {
@@ -465,30 +478,50 @@ async function getProfileCodesCount(profileId, routerId) {
 }
 
 /**
- * Ajouter un profil à la liste déroulante d'importation
+ * Ajouter un profil à la liste déroulante d'importation et aux filtres
  * @param {string} profileId - ID du profil
  * @param {Object} profile - Données du profil
  */
 function addProfileToImportSelect(profileId, profile) {
+    // Texte du profil à afficher dans les listes déroulantes
+    const profileText = `${profile.name} (${profile.duration} - ${profile.price} FCFA)`;
+    
     // Ajouter au sélecteur d'importation
     const importSelect = document.getElementById('importProfile');
-    if (!importSelect) {
+    if (importSelect) {
+        const importOption = document.createElement('option');
+        importOption.value = profileId;
+        importOption.textContent = profileText;
+        importSelect.appendChild(importOption);
+    } else {
         console.error('Élément importProfile non trouvé');
-        return;
     }
-    
-    const importOption = document.createElement('option');
-    importOption.value = profileId;
-    importOption.textContent = `${profile.name} (${profile.duration} - ${profile.price} FCFA)`;
-    importSelect.appendChild(importOption);
     
     // Ajouter au sélecteur de génération
     const generateSelect = document.getElementById('generateProfileSelect');
     if (generateSelect) {
         const generateOption = document.createElement('option');
         generateOption.value = profileId;
-        generateOption.textContent = `${profile.name} (${profile.duration} - ${profile.price} FCFA)`;
+        generateOption.textContent = profileText;
         generateSelect.appendChild(generateOption);
+    }
+    
+    // Ajouter au filtre des codes disponibles
+    const filterProfile = document.getElementById('filterProfile');
+    if (filterProfile) {
+        const filterOption = document.createElement('option');
+        filterOption.value = profileId;
+        filterOption.textContent = profile.name;
+        filterProfile.appendChild(filterOption);
+    }
+    
+    // Ajouter au filtre des codes vendus
+    const filterSoldProfile = document.getElementById('filterSoldProfile');
+    if (filterSoldProfile) {
+        const filterSoldOption = document.createElement('option');
+        filterSoldOption.value = profileId;
+        filterSoldOption.textContent = profile.name;
+        filterSoldProfile.appendChild(filterSoldOption);
     }
 }
 
@@ -541,6 +574,19 @@ async function loadCodes(routerId, page = 1, itemsPerPage = 20, lastDocId = null
                 
                 if (filters.profileId && code.profileId !== filters.profileId) {
                     includeCode = false;
+                }
+                
+                // Filtrer par texte de recherche
+                if (filters.searchText && filters.searchText.trim() !== '') {
+                    const searchText = filters.searchText.toLowerCase();
+                    const codeValue = code.username && code.password ? `${code.username}/${code.password}` : 
+                                     code.password ? code.password : 
+                                     code.username ? code.username : '';
+                    
+                    // Vérifier si le code contient le texte de recherche
+                    if (!codeValue.toLowerCase().includes(searchText)) {
+                        includeCode = false;
+                    }
                 }
                 
                 if (includeCode) {
@@ -1002,14 +1048,23 @@ function addCodeRow(codeId, code, container) {
     const codeValue = code.username && code.password ? `${code.username} / ${code.password}` : 
                      code.password ? code.password : 
                      code.username ? code.username : '-';
+    
+    // Ajouter une case à cocher uniquement pour les codes disponibles
+    const checkboxCell = code.status === 'available' ? `
+        <td>
+            <div class="form-check">
+                <input class="form-check-input code-checkbox" type="checkbox" value="${codeId}" data-code-id="${codeId}">
+                <label class="form-check-label"></label>
+            </div>
+        </td>` : '<td></td>';
                      
     row.innerHTML = `
+        ${checkboxCell}
         <td><code>${codeValue}</code></td>
-        <td class="code-profile">${profileName}</td>
-        <td>${code.clientName || '-'}</td>
+        <td class="code-profile" data-profile-id="${code.profileId}">${profileName}</td>
         <td>${createdAt}</td>
-        <td>${usedAt}</td>
-        <td><span class="badge ${statusClass}">${statusText}</span></td>
+        <td>${code.price ? code.price + ' FCFA' : '-'}</td>
+        <td>${code.duration || '-'}</td>
         <td>
             <button type="button" class="btn btn-sm btn-outline-primary view-code-btn" data-code-id="${codeId}">
                 <i class="fas fa-eye"></i>
@@ -1064,7 +1119,7 @@ function addSoldCodeRow(codeId, code, container) {
                      
     row.innerHTML = `
         <td><code>${codeValue}</code></td>
-        <td class="code-profile">${profileName}</td>
+        <td class="code-profile" data-profile-id="${code.profileId}">${profileName}</td>
         <td>${code.clientName || '-'}</td>
         <td>${usedAt}</td>
         <td>${price}</td>
@@ -1131,24 +1186,8 @@ function setupImportForm(routerId, needsLicense = false) {
             new bootstrap.Tooltip(importSubmitBtn);
         }
     } else {
-        // Configuration normale du formulaire d'importation
-        if (importMethod) {
-            importMethod.addEventListener('change', function() {
-                if (this.value === 'csv') {
-                    csvImport.classList.remove('d-none');
-                    textImport.classList.add('d-none');
-                    pdfImport.classList.add('d-none');
-                } else if (this.value === 'text') {
-                    csvImport.classList.add('d-none');
-                    textImport.classList.remove('d-none');
-                    pdfImport.classList.add('d-none');
-                } else if (this.value === 'pdf') {
-                    csvImport.classList.add('d-none');
-                    textImport.classList.add('d-none');
-                    pdfImport.classList.remove('d-none');
-                }
-            });
-        }
+        // Le formulaire PDF est maintenant le seul disponible et est toujours visible
+        // Aucune action supplémentaire n'est nécessaire
     }
 }
 
@@ -1221,9 +1260,22 @@ function setupFilterHandlers(routerId, needsLicense = false) {
     // Gestionnaires pour les filtres des codes disponibles
     const searchInput = document.getElementById('searchCodes');
     if (searchInput) {
+        // Utiliser un délai pour éviter de faire trop de requêtes pendant la frappe
+        let searchTimeout;
         searchInput.addEventListener('input', function() {
-            // Utiliser filterCodes pour filtrer les codes sans recharger toute la liste
-            filterCodes();
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchText = this.value.trim();
+                const profileSelect = document.getElementById('filterProfile');
+                const profileId = profileSelect ? profileSelect.value : 'all';
+                
+                // Recharger les codes disponibles avec le filtre de recherche
+                loadCodes(routerId, 1, 20, null, {
+                    status: 'available',
+                    profileId: profileId === 'all' ? null : profileId,
+                    searchText: searchText
+                });
+            }, 300); // Délai de 300ms pour éviter les requêtes trop fréquentes
         });
     }
     
@@ -1233,8 +1285,16 @@ function setupFilterHandlers(routerId, needsLicense = false) {
             const searchInput = document.getElementById('searchCodes');
             if (searchInput) {
                 searchInput.value = '';
-                // Utiliser filterCodes pour filtrer les codes sans recharger toute la liste
-                filterCodes();
+                
+                // Récupérer le filtre de profil actuel
+                const profileSelect = document.getElementById('filterProfile');
+                const profileId = profileSelect ? profileSelect.value : 'all';
+                
+                // Recharger les codes disponibles sans filtre de recherche
+                loadCodes(routerId, 1, 20, null, {
+                    status: 'available',
+                    profileId: profileId === 'all' ? null : profileId
+                });
             }
         });
     }
@@ -1242,8 +1302,16 @@ function setupFilterHandlers(routerId, needsLicense = false) {
     const filterProfile = document.getElementById('filterProfile');
     if (filterProfile) {
         filterProfile.addEventListener('change', function() {
-            // Utiliser filterCodes pour filtrer les codes sans recharger toute la liste
-            filterCodes();
+            const profileId = this.value;
+            const searchInput = document.getElementById('searchCodes');
+            const searchText = searchInput ? searchInput.value.trim() : '';
+            
+            // Recharger les codes disponibles avec le filtre de profil
+            loadCodes(routerId, 1, 20, null, {
+                status: 'available',
+                profileId: profileId === 'all' ? null : profileId,
+                searchText: searchText
+            });
         });
     }
     
@@ -1789,7 +1857,6 @@ function setupEventHandlers(routerId) {
         importCodesBtn.addEventListener('click', function() {
             // Récupérer les valeurs du formulaire
             const profileId = document.getElementById('importProfile').value;
-            const importMethod = document.getElementById('importMethod').value;
             
             // Validation basique
             if (!profileId) {
@@ -1799,50 +1866,25 @@ function setupEventHandlers(routerId) {
                 return;
             }
             
-            // Récupérer les codes selon la méthode d'importation
-            if (importMethod === 'csv') {
-                const csvFile = document.getElementById('csvFile').files[0];
-                if (!csvFile) {
-                    const errorElement = document.getElementById('importFormError');
-                    errorElement.textContent = 'Veuillez sélectionner un fichier CSV';
-                    errorElement.classList.remove('d-none');
-                    return;
-                }
-                
-                // Traiter le fichier CSV
-                processCSVFile(csvFile, profileId, routerId);
-            } else if (importMethod === 'text') {
-                const textCodes = document.getElementById('textCodes').value.trim();
-                if (!textCodes) {
-                    const errorElement = document.getElementById('importFormError');
-                    errorElement.textContent = 'Veuillez entrer des codes';
-                    errorElement.classList.remove('d-none');
-                    return;
-                }
-                
-                // Traiter les codes texte
-                processTextCodes(textCodes, profileId, routerId);
-            } else if (importMethod === 'pdf') {
-                // Vérifier si des codes ont été extraits
-                const extractedCodes = window.extractedCodes || [];
-                if (extractedCodes.length === 0) {
-                    const errorElement = document.getElementById('importFormError');
-                    errorElement.textContent = 'Aucun code extrait. Veuillez sélectionner un fichier PDF et saisir un exemple de code.';
-                    errorElement.classList.remove('d-none');
-                    return;
-                }
-                
-                // Afficher le spinner
-                const spinner = document.getElementById('importCodesSpinner');
-                spinner.classList.remove('d-none');
-                importCodesBtn.disabled = true;
-                
-                // Vérifier le format des codes
-                const isUserPass = document.getElementById('formatUserPass').checked;
-                
-                // Importer les codes extraits
-                importCodes(extractedCodes, profileId, routerId, isUserPass);
+            // Vérifier si des codes ont été extraits
+            const extractedCodes = window.extractedCodes || [];
+            if (extractedCodes.length === 0) {
+                const errorElement = document.getElementById('importFormError');
+                errorElement.textContent = 'Aucun code extrait. Veuillez sélectionner un fichier PDF et saisir un exemple de code.';
+                errorElement.classList.remove('d-none');
+                return;
             }
+            
+            // Afficher le spinner
+            const spinner = document.getElementById('importCodesSpinner');
+            spinner.classList.remove('d-none');
+            importCodesBtn.disabled = true;
+            
+            // Vérifier le format des codes
+            const isUserPass = document.getElementById('formatUserPass').checked;
+            
+            // Importer les codes extraits
+            importCodes(extractedCodes, profileId, routerId, isUserPass);
         });
     }
     
@@ -1964,8 +2006,8 @@ function processTextCodes(text, profileId, routerId) {
 }
 
 /**
- * Traiter un fichier PDF
- * @param {File} file - Fichier PDF
+ * Traite un fichier PDF pour en extraire les codes
+ * @param {File} file - Fichier PDF à traiter
  * @param {string} pattern - Pattern d'expression régulière pour extraire les codes
  * @param {boolean} isUserPass - Indique si le format est User/Mot de passe
  * @returns {Promise<Array>}
@@ -1994,13 +2036,42 @@ async function processPDFFile(file, pattern, isUserPass) {
         
         let extractedText = '';
         
-        // Extraire le texte de chaque page
+        // Extraire le texte de chaque page avec une meilleure gestion des espaces
         for (let i = 1; i <= pdf.numPages; i++) {
             console.log(`Extraction du texte de la page ${i}/${pdf.numPages}...`);
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(' ');
-            extractedText += pageText + '\n';
+            
+            // Amélioration de l'extraction du texte en tenant compte des positions
+            let lastY = null;
+            let text = '';
+            
+            // Trier les éléments par position Y puis X pour respecter l'ordre de lecture
+            const sortedItems = textContent.items.sort((a, b) => {
+                if (Math.abs(a.transform[5] - b.transform[5]) < 5) {
+                    // Même ligne (Y similaire), trier par X
+                    return a.transform[4] - b.transform[4];
+                }
+                // Lignes différentes, trier par Y (de haut en bas)
+                return b.transform[5] - a.transform[5];
+            });
+            
+            for (const item of sortedItems) {
+                const currentY = item.transform[5];
+                
+                // Si on change de ligne, ajouter un saut de ligne
+                if (lastY !== null && Math.abs(currentY - lastY) > 5) {
+                    text += '\n';
+                } else if (lastY !== null) {
+                    // Sinon, ajouter un espace entre les mots sur la même ligne
+                    text += ' ';
+                }
+                
+                text += item.str;
+                lastY = currentY;
+            }
+            
+            extractedText += text + '\n';
         }
         
         console.log('Texte extrait du PDF (extrait):', extractedText.substring(0, 200) + '...');
@@ -2025,6 +2096,16 @@ async function processPDFFile(file, pattern, isUserPass) {
                     displayExtractedCodes(looseCodes, true);
                     return looseCodes;
                 }
+                
+                // Essayer un pattern encore plus souple avec moins de contraintes
+                const veryLoosePattern = '([\\w]{3,})\\s+([\\w]{3,})';
+                console.log('Dernier essai avec pattern très souple pour User/Pass:', veryLoosePattern);
+                const veryLooseCodes = extractCodesFromText(extractedText, veryLoosePattern, true);
+                console.log('Nombre de codes extraits avec pattern très souple:', veryLooseCodes.length);
+                if (veryLooseCodes.length > 0) {
+                    displayExtractedCodes(veryLooseCodes, true);
+                    return veryLooseCodes;
+                }
             } else {
                 // Pour le format Voucher, on essaie de détecter des séquences de lettres/chiffres
                 loosePattern = '[A-Za-z0-9]{4,}';
@@ -2035,6 +2116,16 @@ async function processPDFFile(file, pattern, isUserPass) {
                     // Afficher les codes extraits
                     displayExtractedCodes(looseCodes, false);
                     return looseCodes;
+                }
+                
+                // Essayer un pattern encore plus souple
+                const veryLoosePattern = '[\\w]{4,}';
+                console.log('Dernier essai avec pattern très souple pour Voucher:', veryLoosePattern);
+                const veryLooseCodes = extractCodesFromText(extractedText, veryLoosePattern, false);
+                console.log('Nombre de codes extraits avec pattern très souple:', veryLooseCodes.length);
+                if (veryLooseCodes.length > 0) {
+                    displayExtractedCodes(veryLooseCodes, false);
+                    return veryLooseCodes;
                 }
             }
         }
@@ -2081,8 +2172,8 @@ function extractCodesFromText(text, pattern, isUserPass) {
     
     try {
         // Prétraitement du texte pour améliorer la détection
-        // Remplacer les espaces multiples par un seul espace
-        const cleanedText = text.replace(/\s+/g, ' ');
+        // Remplacer les sauts de ligne par des espaces et normaliser les espaces multiples
+        const cleanedText = text.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ');
         console.log('Texte nettoyé (extrait):', cleanedText.substring(0, 200) + '...');
         
         if (isUserPass) {
@@ -2106,7 +2197,8 @@ function extractCodesFromText(text, pattern, isUserPass) {
             }
             
             console.log('Utilisation du pattern regex pour User/Pass:', regexStr);
-            regex = new RegExp(regexStr, 'gm');
+            // Utiliser le flag 'i' pour ignorer la casse
+            regex = new RegExp(regexStr, 'gmi');
         } else {
             // Pour le format Voucher
             // Vérifier si le pattern est valide, sinon utiliser un pattern par défaut
@@ -2114,12 +2206,13 @@ function extractCodesFromText(text, pattern, isUserPass) {
                 // Tester si le pattern est une regex valide
                 new RegExp(pattern);
                 console.log('Utilisation du pattern regex pour Voucher:', pattern);
-                regex = new RegExp(pattern, 'gm');
+                // Utiliser le flag 'i' pour ignorer la casse
+                regex = new RegExp(pattern, 'gmi');
             } catch (e) {
                 // Pattern invalide, utiliser un pattern par défaut
                 const defaultPattern = '[A-Za-z0-9]{4,}';
                 console.warn('Pattern invalide, utilisation du pattern par défaut:', defaultPattern);
-                regex = new RegExp(defaultPattern, 'gm');
+                regex = new RegExp(defaultPattern, 'gmi');
             }
         }
         
@@ -2554,16 +2647,16 @@ function filterCodes() {
         // Filtrer par profil
         if (profileFilter !== 'all') {
             // Récupérer l'ID du profil de la ligne
-            const profileIdCell = row.querySelector('[data-profile-id]');
-            if (profileIdCell) {
-                const rowProfileId = profileIdCell.dataset.profileId;
-                if (rowProfileId !== profileFilter) {
-                    showRow = false;
-                }
-            } else {
-                // Si on ne trouve pas l'ID du profil, on vérifie le texte
-                const profileCell = row.querySelector('td:nth-child(2)');
-                if (profileCell) {
+            const profileCell = row.querySelector('.code-profile');
+            if (profileCell) {
+                // Vérifier d'abord si l'attribut data-profile-id existe
+                if (profileCell.hasAttribute('data-profile-id')) {
+                    const rowProfileId = profileCell.getAttribute('data-profile-id');
+                    if (rowProfileId !== profileFilter) {
+                        showRow = false;
+                    }
+                } else {
+                    // Fallback: vérifier le texte du profil
                     const profileName = profileCell.textContent.trim().toLowerCase();
                     // Récupérer le texte du profil sélectionné
                     const selectedProfileText = filterProfileElement.options[filterProfileElement.selectedIndex].text.toLowerCase();
@@ -2571,6 +2664,9 @@ function filterCodes() {
                         showRow = false;
                     }
                 }
+            } else {
+                // Si on ne trouve pas la cellule du profil, masquer la ligne
+                showRow = false;
             }
         }
         
@@ -3377,6 +3473,126 @@ async function loadWifiCodes(routerId, profileId = null, status = null) {
 }
 
 /**
+ * Configurer les gestionnaires d'événements pour la suppression en masse des codes disponibles
+ * @param {string} routerId - ID du routeur
+ * @param {boolean} needsLicense - Indique si l'utilisateur a besoin d'activer une licence
+ */
+function setupBatchDeleteHandlers(routerId, needsLicense = false) {
+    // Récupérer les éléments du DOM
+    const selectAllCheckbox = document.getElementById('selectAllCodes');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedCodesBtn');
+    
+    if (!selectAllCheckbox || !deleteSelectedBtn) {
+        console.error('Les éléments pour la suppression en masse n\'ont pas été trouvés');
+        return;
+    }
+    
+    // Si l'utilisateur n'a pas de licence, désactiver la fonctionnalité
+    if (needsLicense) {
+        deleteSelectedBtn.disabled = true;
+        deleteSelectedBtn.setAttribute('data-bs-toggle', 'tooltip');
+        deleteSelectedBtn.setAttribute('title', 'Activez votre licence pour accéder à cette fonctionnalité');
+        // Initialiser les tooltips Bootstrap
+        new bootstrap.Tooltip(deleteSelectedBtn);
+        return;
+    }
+    
+    // Fonction pour mettre à jour l'état du bouton de suppression
+    function updateDeleteButtonState() {
+        const checkedBoxes = document.querySelectorAll('#codesList .code-checkbox:checked');
+        deleteSelectedBtn.disabled = checkedBoxes.length === 0;
+        
+        if (checkedBoxes.length > 0) {
+            deleteSelectedBtn.textContent = `Supprimer ${checkedBoxes.length} code(s) sélectionné(s)`;
+        } else {
+            deleteSelectedBtn.innerHTML = '<i class="fas fa-trash-alt me-1"></i> Supprimer les codes sélectionnés';
+        }
+    }
+    
+    // Gestionnaire d'événement pour la case à cocher "Tout sélectionner"
+    selectAllCheckbox.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('#codesList .code-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+        
+        updateDeleteButtonState();
+    });
+    
+    // Gestionnaire d'événement pour les cases à cocher individuelles (délégation d'événements)
+    document.getElementById('codesList').addEventListener('change', function(e) {
+        if (e.target && e.target.classList.contains('code-checkbox')) {
+            // Vérifier si toutes les cases sont cochées
+            const checkboxes = document.querySelectorAll('#codesList .code-checkbox');
+            const checkedBoxes = document.querySelectorAll('#codesList .code-checkbox:checked');
+            
+            // Mettre à jour la case "Tout sélectionner"
+            selectAllCheckbox.checked = checkboxes.length > 0 && checkboxes.length === checkedBoxes.length;
+            
+            // Mettre à jour l'état du bouton de suppression
+            updateDeleteButtonState();
+        }
+    });
+    
+    // Gestionnaire d'événement pour le bouton de suppression
+    deleteSelectedBtn.addEventListener('click', async function() {
+        const checkedBoxes = document.querySelectorAll('#codesList .code-checkbox:checked');
+        const codeIds = Array.from(checkedBoxes).map(checkbox => checkbox.getAttribute('data-code-id'));
+        
+        if (codeIds.length === 0) {
+            return;
+        }
+        
+        // Demander confirmation
+        if (!confirm(`Voulez-vous vraiment supprimer ${codeIds.length} code(s) WiFi ? Cette action est irréversible.`)) {
+            return;
+        }
+        
+        // Afficher un spinner
+        deleteSelectedBtn.disabled = true;
+        deleteSelectedBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Suppression en cours...
+        `;
+        
+        try {
+            // Utiliser un batch pour supprimer tous les codes sélectionnés
+            const batch = writeBatch(db);
+            
+            codeIds.forEach(codeId => {
+                const codeRef = doc(db, 'wifiCodes', codeId);
+                batch.delete(codeRef);
+            });
+            
+            // Exécuter le batch
+            await batch.commit();
+            
+            // Afficher un message de succès
+            showGlobalMessage('success', `${codeIds.length} code(s) WiFi supprimé(s) avec succès`);
+            
+            // Recharger les codes disponibles
+            loadCodes(routerId, 1, 20, null, { status: 'available' });
+            
+            // Réinitialiser la case à cocher "Tout sélectionner"
+            selectAllCheckbox.checked = false;
+            
+            // Réinitialiser le bouton de suppression
+            deleteSelectedBtn.disabled = true;
+            deleteSelectedBtn.innerHTML = '<i class="fas fa-trash-alt me-1"></i> Supprimer les codes sélectionnés';
+        } catch (error) {
+            console.error('Erreur lors de la suppression des codes:', error);
+            
+            // Afficher un message d'erreur
+            showGlobalMessage('error', `Erreur lors de la suppression des codes: ${error.message}`);
+            
+            // Réinitialiser le bouton de suppression
+            deleteSelectedBtn.disabled = false;
+            deleteSelectedBtn.innerHTML = '<i class="fas fa-trash-alt me-1"></i> Supprimer les codes sélectionnés';
+        }
+    });
+}
+
+/**
  * Mettre à jour la liste des codes WiFi
  * @param {FirebaseFirestore.QuerySnapshot} querySnapshot - Résultat de la requête
  * @param {string} routerId - ID du routeur
@@ -3959,11 +4175,7 @@ async function editProfile(profileId, routerId) {
 //     }
 // }
 
-/**
- * Éditer un profil
- * @param {string} profileId - ID du profil
- * @param {string} routerId - ID du routeur
- */
+
 // async function saveGeneratedCodes(routerId, profileId, codes) {
 //     try {
 //         // Créer un lot de codes à enregistrer

@@ -237,6 +237,11 @@ module.exports = {
           from: 'assets',
           to: 'assets',
           noErrorOnMissing: true
+        },
+        {
+          from: 'components',
+          to: 'components',
+          noErrorOnMissing: true
         }
       ]
     })
