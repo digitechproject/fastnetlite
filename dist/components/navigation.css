@@ -79,7 +79,7 @@
   border-bottom: 1px solid #dee2e6;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   position: relative;
-  z-index: 100;
+  z-index: -1;
 }
 
 #routerSubNav h5 {
@@ -104,7 +104,7 @@
 @media (min-width: 992px) {
   #routerSubNav.router-sidebar {
     position: fixed;
-    top: 64px; /* Hauteur de la navbar principale */
+    top: 64px; /* Hauteur de navbar principale */
     left: 0;
     bottom: 0;
     width: 250px;
