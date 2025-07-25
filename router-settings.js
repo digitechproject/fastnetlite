@@ -120,9 +120,12 @@ async function loadRouterInfo(routerId) {
         if (docSnap.exists()) {
             const router = docSnap.data();
             
-            // Mettre à jour le fil d'Ariane
-            document.getElementById('routerBreadcrumb').textContent = router.name;
-            document.getElementById('routerBreadcrumb').href = `router-dashboard.html?id=${routerId}`;
+            // Mettre à jour le fil d'Ariane (si l'élément existe)
+            const routerBreadcrumb = document.getElementById('routerBreadcrumb');
+            if (routerBreadcrumb) {
+                routerBreadcrumb.textContent = router.name;
+                routerBreadcrumb.href = `router-dashboard.html?id=${routerId}`;
+            }
             
             // Mettre à jour le titre de la page
             document.title = `Paramètres - ${router.name} - FastNetLite`;
@@ -191,6 +194,23 @@ async function loadGeneralSettings(routerId) {
             
             const viewBuyPageBtnElement = document.getElementById('viewBuyPageBtn');
             if (viewBuyPageBtnElement) viewBuyPageBtnElement.href = buyPageLink;
+            
+            // Charger les paramètres avancés pour collectClientInfo
+            const advancedSettingsRef = doc(db, 'routers', routerId, 'settings', 'advanced');
+            const advancedDocSnap = await getDoc(advancedSettingsRef);
+            
+            if (advancedDocSnap.exists()) {
+                const advancedSettings = advancedDocSnap.data();
+                const collectClientInfoElement = document.getElementById('collectClientInfo');
+                if (collectClientInfoElement) {
+                    // Par défaut, la collecte est activée (true)
+                    collectClientInfoElement.checked = advancedSettings.collectClientInfo !== false;
+                }
+            } else {
+                // Si le document n'existe pas, utiliser la valeur par défaut (true)
+                const collectClientInfoElement = document.getElementById('collectClientInfo');
+                if (collectClientInfoElement) collectClientInfoElement.checked = true;
+            }
         }
     } catch (error) {
         console.error('Erreur lors de la récupération des paramètres généraux:', error);
@@ -204,12 +224,19 @@ async function loadGeneralSettings(routerId) {
  * @param {string} routerId - ID du routeur
  */
 function updateNavigationLinks(routerId) {
-    // Liens de navigation du routeur
-    document.getElementById('routerDashboardLink').href = `router-dashboard.html?id=${routerId}`;
-    document.getElementById('routerWifiCodesLink').href = `wifi-codes.html?id=${routerId}`;
-    document.getElementById('routerClientsLink').href = `clients.html?id=${routerId}`;
-    document.getElementById('routerPaymentsLink').href = `payments.html?id=${routerId}`;
-    document.getElementById('routerSettingsLink').href = `router-settings.html?id=${routerId}`;
+    // Liens de navigation du routeur - vérifier l'existence de chaque élément avant d'y accéder
+    const updateLinkHref = (id, url) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.href = url;
+        }
+    };
+    
+    updateLinkHref('routerDashboardLink', `router-dashboard.html?id=${routerId}`);
+    updateLinkHref('routerWifiCodesLink', `wifi-codes.html?id=${routerId}`);
+    updateLinkHref('routerClientsLink', `clients.html?id=${routerId}`);
+    updateLinkHref('routerPaymentsLink', `payments.html?id=${routerId}`);
+    updateLinkHref('routerSettingsLink', `router-settings.html?id=${routerId}`);
 }
 
 /**
@@ -303,7 +330,8 @@ function setupEventHandlers(routerId) {
     }
     
     // Bouton principal pour enregistrer les modifications
-    addSafeEventListener('saveSettingsBtn', 'click', function() {
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    addSafeEventListener(saveSettingsBtn, 'click', function() {
         console.log('Bouton Enregistrer les modifications cliqué');
         // Déterminer quel onglet est actif et enregistrer les paramètres correspondants
         const activeTab = document.querySelector('.tab-pane.active');
@@ -445,6 +473,7 @@ function saveGeneralSettings(routerId) {
     const buyPageSlug = document.getElementById('buyPageSlug').value.trim();
     const buyPageDescription = document.getElementById('buyPageDescription').value.trim();
     const enableBuyPage = document.getElementById('enableBuyPage').checked;
+    const collectClientInfo = document.getElementById('collectClientInfo').checked;
     
     // Valider les données
     if (!name) {
@@ -476,6 +505,16 @@ function saveGeneralSettings(routerId) {
         .then(() => {
             console.log('Paramètres généraux enregistrés avec succès');
             
+            // Sauvegarder également le paramètre collectClientInfo dans les paramètres avancés
+            const advancedSettingsRef = doc(db, 'routers', routerId, 'settings', 'advanced');
+            return setDoc(advancedSettingsRef, {
+                collectClientInfo: collectClientInfo,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+        })
+        .then(() => {
+            console.log('Paramètres avancés enregistrés avec succès');
+            
             // Masquer le spinner
             if (saveSpinner) saveSpinner.classList.add('d-none');
             if (saveBtn) saveBtn.disabled = false;
@@ -483,9 +522,11 @@ function saveGeneralSettings(routerId) {
             // Afficher un message de succès
             showSuccess('generalSettingsSuccess', 'Paramètres généraux enregistrés avec succès');
             
-            // Mettre à jour le fil d'Ariane
+            // Mettre à jour le fil d'Ariane (si l'élément existe)
             const routerBreadcrumb = document.getElementById('routerBreadcrumb');
-            if (routerBreadcrumb) routerBreadcrumb.textContent = name;
+            if (routerBreadcrumb) {
+                routerBreadcrumb.textContent = name;
+            }
             
             // Mettre à jour le titre de la page
             document.title = `Paramètres - ${name} - FastNetLite`;

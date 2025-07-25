@@ -242,6 +242,22 @@ module.exports = {
           from: 'components',
           to: 'components',
           noErrorOnMissing: true
+        },
+        {
+          from: 'manifest.json',
+          to: 'manifest.json',
+          noErrorOnMissing: true
+        },
+        {
+          from: 'service-worker.js',
+          to: 'service-worker.js',
+          noErrorOnMissing: true
+        },
+        {
+          // Création du dossier pour les icônes PWA
+          from: 'js/pwa-installer.js',
+          to: 'js/pwa-installer.js',
+          noErrorOnMissing: true
         }
       ]
     })

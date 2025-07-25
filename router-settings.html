@@ -23,14 +23,6 @@
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <div>
                         <h1 class="h2">Paramètres du Routeur</h1>
-                        <!-- <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="dashboard.html">Tableau de bord</a></li>
-                                <li class="breadcrumb-item"><a href="routers.html">Routeurs</a></li>
-                                <li class="breadcrumb-item"><a href="#" id="routerBreadcrumb">Routeur</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Paramètres</li>
-                            </ol>
-                        </nav> -->
                     </div>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <button type="button" class="btn btn-sm btn-primary" id="saveSettingsBtn">
@@ -131,6 +123,13 @@
                                             <input class="form-check-input" type="checkbox" id="enableBuyPage" checked>
                                             <label class="form-check-label" for="enableBuyPage">Activer la page d'achat</label>
                                         </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="collectClientInfo" checked>
+                                            <label class="form-check-label" for="collectClientInfo">Collecter les informations clients (nom, email)</label>
+                                        </div>
+                                        <div class="form-text">Si désactivé, seul le numéro de téléphone sera demandé lors de l'achat</div>
                                     </div>
                                     <div class="mb-3">
                                         <label for="buyPageLink" class="form-label">Lien vers la page d'achat</label>

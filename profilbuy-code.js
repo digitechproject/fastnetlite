@@ -342,7 +342,8 @@ function loadAdvancedSettings(routerId) {
                     collectClientPhone: true,
                     requireClientPhone: true,
                     collectClientEmail: false,
-                    requireClientEmail: false
+                    requireClientEmail: false,
+                    collectClientInfo: true
                 };
                 window.advancedSettings = defaultAdvanced;
                 setupDataCollectionFields(defaultAdvanced);
@@ -356,7 +357,8 @@ function loadAdvancedSettings(routerId) {
                 collectClientPhone: true,
                 requireClientPhone: true,
                 collectClientEmail: false,
-                requireClientEmail: false
+                requireClientEmail: false,
+                collectClientInfo: true
             };
             window.advancedSettings = defaultAdvanced;
             setupDataCollectionFields(defaultAdvanced);
@@ -378,8 +380,45 @@ function setupDataCollectionFields(advancedSettings) {
             collectClientPhone: true,
             requireClientPhone: true,
             collectClientEmail: false,
-            requireClientEmail: false
+            requireClientEmail: false,
+            collectClientInfo: true
         };
+    }
+    
+    // Si collectClientInfo est false, masquer le formulaire et déclencher le paiement direct
+    if (advancedSettings.collectClientInfo === false) {
+        console.log('Collecte d\'informations désactivée, masquage du formulaire et déclenchement automatique du paiement');
+        
+        // Masquer le formulaire complet
+        const formCard = document.querySelector('.form-card');
+        if (formCard) {
+            formCard.style.display = 'none';
+        }
+        
+        // Afficher un spinner de chargement
+        const loadingContainer = document.createElement('div');
+        loadingContainer.id = 'autoPaymentLoading';
+        loadingContainer.className = 'text-center my-5';
+        loadingContainer.innerHTML = `
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <h4 class="mt-3">Initialisation du paiement...</h4>
+            <p class="text-muted">Veuillez patienter pendant que nous préparons votre paiement</p>
+        `;
+        
+        // Ajouter le spinner à la page
+        const mainContainer = document.querySelector('.container');
+        if (mainContainer) {
+            mainContainer.appendChild(loadingContainer);
+        }
+        
+        // Déclencher automatiquement le paiement après un court délai (pour laisser le temps au spinner de s'afficher)
+        setTimeout(() => {
+            handleDirectPayment();
+        }, 500);
+        
+        return;
     }
     
     // Champ de nom - par défaut visible sauf si explicitement désactivé
@@ -1067,4 +1106,78 @@ function showSuccess(message) {
     // Afficher le modal de succès
     const successModal = new bootstrap.Modal(document.getElementById('successModal'));
     successModal.show();
+}
+
+/**
+ * Afficher l'interface de paiement direct (sans collecte d'informations)
+ */
+function showDirectPaymentInterface() {
+    // Créer une interface simplifiée pour le paiement direct
+    const formCard = document.querySelector('.form-card');
+    if (formCard) {
+        formCard.innerHTML = `
+            <button type="button" class="btn btn-primary btn-lg text-center" id="directPaymentBtn">
+                <i class="fas fa-credit-card me-2"></i>Payer Maintenant
+            </button>
+        `;
+        formCard.style.display = 'block';
+        
+        // Ajouter l'événement au bouton de paiement direct
+        const directPaymentBtn = document.getElementById('directPaymentBtn');
+        if (directPaymentBtn) {
+            directPaymentBtn.addEventListener('click', function() {
+                handleDirectPayment();
+            });
+        }
+    }
+}
+
+/**
+ * Gérer le paiement direct sans collecte d'informations
+ */
+function handleDirectPayment() {
+    // Récupérer les paramètres depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const routerId = urlParams.get('routerId');
+    const profileId = urlParams.get('profileId');
+    
+    if (!routerId || !profileId) {
+        showError('Paramètres manquants pour le paiement.');
+        return;
+    }
+    
+    // Utiliser des informations par défaut
+    const defaultClientName = 'Client';
+    const defaultClientEmail = '';
+    
+    // Afficher le modal de chargement
+    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    loadingModal.show();
+    
+    // Créer ou récupérer le client avec des informations par défaut
+    findOrCreateClient(routerId, defaultClientName, '', defaultClientEmail)
+        .then((clientId) => {
+            console.log('Client créé/trouvé avec succès:', clientId);
+            
+            // Créer un paiement en attente
+            return createPendingPayment(routerId, profileId, clientId, defaultClientName, '');
+        })
+        .then((paymentId) => {
+            console.log('Paiement en attente créé avec succès:', paymentId);
+            
+            // Masquer le modal de chargement
+            loadingModal.hide();
+            
+            // Initier le paiement FedaPay directement
+            initiateFedaPayPayment(routerId, profileId, paymentId, defaultClientName);
+        })
+        .catch((error) => {
+            console.error('Erreur lors du paiement direct:', error);
+            
+            // Masquer le modal de chargement
+            loadingModal.hide();
+            
+            // Afficher l'erreur
+            showError(`Erreur lors de l'initialisation du paiement: ${error.message}`);
+        });
 }

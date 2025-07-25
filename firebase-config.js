@@ -27,7 +27,6 @@ const storage = getStorage(app);
 const analytics = getAnalytics(app);
 
 // Exporter les variables Firebase pour les utiliser dans d'autres fichiers
-// export { app, auth, storage, analytics };
 
 // Activer la persistance des données pour le mode hors ligne
 enableIndexedDbPersistence(db)

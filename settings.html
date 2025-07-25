@@ -250,7 +250,8 @@
              <pre class="bg-dark text-light p-3 rounded" id="mikrotikCommands" style="max-height: 400px; overflow-y: auto;">
                 # Règles pour le domaine principal hébergeant FastNetLite
                 /ip hotspot walled-garden ip 
-                add action=accept  comment="FASTNETLITE" dst-host=fastnetlite.vercel.app dst-port=443 protocol=tcp 
+                add action=accept  comment="FASTNETLITE" dst-host=fastnetlite.vercel.app dst-port=443 protocol=tcp
+                add action=accept  comment="FASTNETLITE" dst-host=fastnet.itikets.com dst-port=443 protocol=tcp 
                                         
                 # Règles pour FedaPay (système de paiement)
                 add action=accept comment="FedaPay Sandbox API" dst-host=sandbox-api.fedapay.com
