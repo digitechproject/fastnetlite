@@ -1,0 +1,561 @@
+<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Profils WiFi - FastNetLite</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"><script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script><style>:root {
+            --primary-color: #333333;
+            --primary-light: #f5f5f5;
+            --primary-dark: #1a1a1a;
+            --secondary-color: #666666;
+            --accent-color: #999999;
+            --text-color: #333333;
+            --text-light: #777777;
+            --bg-color: #f8f8f8;
+            --card-bg: #ffffff;
+            --border-color: #eeeeee;
+            --success-color: #333333;
+            --error-color: #777777;
+            --warning-color: #555555;
+        }
+        
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: transparent;
+            color: var(--text-color);
+            line-height: 1.6;
+            font-weight: 300;
+            letter-spacing: -0.01em;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .widget-container {
+            padding: 10px;
+            max-width: 100%;
+        }
+        
+        .profile-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            background-color: var(--card-bg);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .profile-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .profile-card-header {
+            background-color: var(--primary-light);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .profile-title {
+            margin: 0;
+            font-weight: 500;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+        
+        .profile-subtitle {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin: 5px 0 0;
+        }
+        
+        .profile-card-body {
+            padding: 15px 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .profile-card-body .btn-buy {
+            margin-top: auto;
+        }
+        
+        .profile-price {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .profile-description {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .profile-features {
+            margin-bottom: 15px;
+            padding-left: 0;
+            list-style: none;
+        }
+        
+        .profile-features li {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .profile-features i {
+            color: var(--success-color);
+            margin-right: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-buy {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn-buy:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .momo-icon {
+            height: 20px;
+            width: auto;
+            vertical-align: middle;
+            margin-top: -3px;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .error-message {
+            background-color: #fff3f3;
+            color: #d63031;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .no-profiles {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .profile-card {
+                margin-bottom: 15px;
+            }
+            
+            .profile-card-header,
+            .profile-card-body {
+                text-align: center;
+                padding: 10px;
+            }
+            
+            .profile-card .row .col-md-4:not(:last-child) {
+                margin-bottom: 10px;
+            }
+            
+            .btn-buy {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+        
+        /* Custom styles for widget mode */
+        .widget-mode {
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        .widget-mode .profile-card {
+            margin-bottom: 10px;
+        }
+        
+        .widget-mode .profile-card-header {
+            padding: 10px 15px;
+        }
+        
+        .widget-mode .profile-card-body {
+            padding: 10px 15px;
+        }
+        
+        .widget-mode .profile-title {
+            font-size: 1rem;
+        }
+        
+        .widget-mode .profile-price {
+            font-size: 1.2rem;
+        }
+        
+        /* Powered by FastNetLite */
+        .powered-by {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin: 10px 0;
+        }
+        
+        .powered-by a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }</style></head><body><div class="widget-container widget-mode"><h2 class="text-center mb-4">Acheter un code par Momo</h2><div id="profiles-container"><div class="loading-spinner"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Chargement des profils...</p></div></div><div class="powered-by">Propulsé par <a href="https://fastnet.itikets.com" target="_blank">FastNetLite</a></div></div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script><script type="module">// Import des fonctions Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
+
+        // Configuration Firebase (sera initialisée dynamiquement)
+        // Variables globales
+        let app, db;
+        let isLoading = false;
+        
+        // Fonctions utilitaires pour l'interface
+        function showLoading() {
+            const profilesContainer = document.getElementById('profiles-container');
+            profilesContainer.innerHTML = `
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Chargement des profils...</p>
+                </div>
+            `;
+        }
+        
+        // Configuration Firebase directement intégrée pour éviter de charger un fichier externe
+        const firebaseConfig = {
+          apiKey: "AIzaSyAzd4ZozdCWCy6bQK255uyVFdOrbsHoxfQ",
+          authDomain: "fastnetlite.firebaseapp.com",
+          projectId: "fastnetlite",
+          storageBucket: "fastnetlite.firebasestorage.app",
+          messagingSenderId: "539673548783",
+          appId: "1:539673548783:web:a9f7da3299069f0abf081a",
+          measurementId: "G-GSR54JNW8J"
+        };
+
+        // Fonction pour récupérer les paramètres d'URL
+        function getUrlParams() {
+            const params = {};
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            
+            params.routerId = urlParams.get('routerId');
+            params.userId = urlParams.get('userId');
+            params.theme = urlParams.get('theme') || 'default';
+            
+            return params;
+        };
+
+        // Fonction pour initialiser Firebase avec la configuration intégrée
+        async function initializeFirebase() {
+            try {
+                // Utiliser la configuration Firebase déjà définie
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                return true;
+            } catch (error) {
+                console.error('Erreur d\'initialisation Firebase:', error);
+                showError('Impossible de se connecter au service. Veuillez réessayer plus tard.');
+                return false;
+            }
+        }
+
+        /**
+         * Récupère le nombre de codes disponibles pour un profil
+         * @param {string} profileId - ID du profil
+         * @param {string} routerId - ID du routeur
+         * @returns {Promise<number>} - Nombre de codes disponibles
+         */
+        async function getProfileAvailableCodesCount(profileId, routerId) {
+            try {
+                // Récupérer les codes WiFi pour ce profil
+                const wifiCodesRef = collection(db, 'wifiCodes');
+                const codesQuery = query(
+                    wifiCodesRef,
+                    where('profileId', '==', profileId),
+                    where('routerId', '==', routerId),
+                    where('status', '==', 'available')
+                );
+                
+                try {
+                    const snapshot = await getDocs(codesQuery);
+                    // Compter uniquement les codes non-dummy
+                    let count = 0;
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (!data._dummy) {
+                            count++;
+                        }
+                    });
+                    return count;
+                } catch (error) {
+                    // Si l'index composite n'existe pas, essayer une approche alternative
+                    console.warn('Erreur lors de la requête avec conditions multiples:', error.message);
+                    
+                    // Essayer avec moins de conditions
+                    const simpleQuery = query(
+                        wifiCodesRef,
+                        where('profileId', '==', profileId),
+                        where('routerId', '==', routerId)
+                    );
+                    
+                    const snapshot = await getDocs(simpleQuery);
+                    let count = 0;
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.status === 'available' && !data._dummy) {
+                            count++;
+                        }
+                    });
+                    return count;
+                }
+            } catch (error) {
+                console.error('Erreur lors du comptage des codes disponibles:', error);
+                return 0;
+            }
+        }
+
+        // Fonction pour charger les profils
+        async function loadProfiles() {
+            const params = getUrlParams();
+            const profilesContainer = document.getElementById('profiles-container');
+            
+            // Rendre le widget plus tolérant aux erreurs de paramètres
+            if (!params.routerId) {
+                showError('Identifiant du routeur manquant. Veuillez vérifier l\'URL.');
+                return;
+            }
+            
+            // Rendre le widget fonctionnel même sans userId (mode public)
+            // Le userId n'est plus obligatoire, on va chercher les profils uniquement par routerId
+            
+            try {
+                isLoading = true;
+                // Afficher l'indicateur de chargement
+                showLoading();
+                
+                // Vérifier que le routeur existe
+                const routerRef = doc(db, 'routers', params.routerId);
+                const routerSnap = await getDoc(routerRef);
+                
+                if (!routerSnap.exists()) {
+                    showError('Ce routeur n\'existe pas ou n\'est pas disponible.');
+                    return;
+                }
+                
+                // Si un userId est spécifié, vérifier qu'il correspond au propriétaire du routeur
+                if (params.userId && routerSnap.data().userId !== params.userId) {
+                    showError('Vous n\'avez pas les droits pour accéder à ce routeur.');
+                    return;
+                }
+                const routerData = routerSnap.data();
+                
+                // Récupérer les profils associés à ce routeur
+                const profilesRef = collection(db, 'profiles');
+                const profilesQuery = query(profilesRef, where('routerId', '==', params.routerId));
+                const profilesSnap = await getDocs(profilesQuery);
+                
+                if (profilesSnap.empty) {
+                    profilesContainer.innerHTML = `
+                        <div class="no-profiles">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Aucun profil disponible pour ce routeur.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Tableau pour stocker les profils filtrés
+                const filteredProfiles = [];
+                
+                // Vérifier chaque profil pour le nombre de codes disponibles
+                for (const profileDoc of profilesSnap.docs) {
+                    const profile = profileDoc.data();
+                    const profileId = profileDoc.id;
+                    
+                    // Compter les codes disponibles pour ce profil
+                    const availableCodesCount = await getProfileAvailableCodesCount(profileId, params.routerId);
+                    
+                    // N'ajouter que les profils avec au moins 5 codes disponibles
+                    if (availableCodesCount >= 5) {
+                        filteredProfiles.push({
+                            id: profileId,
+                            data: profile,
+                            availableCodesCount: availableCodesCount
+                        });
+                    }
+                }
+                
+                // Vérifier si des profils ont été filtrés
+                if (filteredProfiles.length === 0) {
+                    profilesContainer.innerHTML = `
+                        <div class="no-profiles">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Aucun profil avec suffisamment de codes disponibles.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Générer le HTML pour la grille de profils
+                profilesContainer.innerHTML = `<div class="row profiles-grid"></div>`;
+                const profilesGrid = profilesContainer.querySelector('.profiles-grid');
+                
+                filteredProfiles.forEach(({ id: profileId, data: profile }) => {
+                    // Générer l'URL d'achat pour ce profil
+                    const buyUrl = `${window.location.origin}/profilbuy-code.html?routerId=${params.routerId}&profileId=${profileId}`;
+                    
+                    // Créer un élément pour chaque carte
+                    const profileCard = document.createElement('div');
+                    profileCard.className = 'col-lg-4 col-md-6 col-12 mb-3';
+                    
+                    profileCard.innerHTML = `
+                        <div class="profile-card h-100">
+                            <div class="profile-card-header">
+                                <h3 class="profile-title">${profile.name}</h3>
+                                <p class="profile-subtitle">${profile.duration || 'Durée non spécifiée'}</p>
+                            </div>
+                            <div class="profile-card-body">
+                                <div class="profile-price">${profile.price} FCFA</div>
+                                <p class="profile-description">${profile.description || 'Accès Internet'}</p>
+                                <a href="${buyUrl}" class="btn btn-buy">
+                                    <img src="assets/momo.png" alt="MoMo" class="momo-icon me-2">Payer
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Ajouter la carte à la grille
+                    profilesGrid.appendChild(profileCard);
+                });
+                
+                // Appliquer le thème si spécifié
+                if (params.theme && params.theme !== 'default') {
+                    applyTheme(params.theme);
+                }
+                
+                // Envoyer la hauteur du contenu à la page parente après le chargement des profils
+                setTimeout(function() {
+                    sendHeightToParent();
+                    
+                    // Ajouter des écouteurs d'événements pour les images
+                    const images = document.querySelectorAll('.momo-icon');
+                    images.forEach(img => {
+                        img.onload = function() {
+                            sendHeightToParent();
+                        };
+                    });
+                }, 300);
+            } catch (error) {
+                console.error('Erreur lors du chargement des profils:', error);
+                profilesContainer.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Impossible de charger les profils. Veuillez réessayer plus tard.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Fonction pour appliquer un thème
+        function applyTheme(theme) {
+            const root = document.documentElement;
+            
+            switch(theme) {
+                case 'dark':
+                    root.style.setProperty('--primary-color', '#3498db');
+                    root.style.setProperty('--primary-light', '#1a1a1a');
+                    root.style.setProperty('--primary-dark', '#2980b9');
+                    root.style.setProperty('--text-color', '#ffffff');
+                    root.style.setProperty('--text-light', '#cccccc');
+                    root.style.setProperty('--bg-color', '#121212');
+                    root.style.setProperty('--card-bg', '#1e1e1e');
+                    root.style.setProperty('--border-color', '#333333');
+                    break;
+                    
+                case 'blue':
+                    root.style.setProperty('--primary-color', '#3498db');
+                    root.style.setProperty('--primary-light', '#edf7ff');
+                    root.style.setProperty('--primary-dark', '#2980b9');
+                    root.style.setProperty('--text-color', '#333333');
+                    root.style.setProperty('--text-light', '#777777');
+                    root.style.setProperty('--bg-color', '#f8f8f8');
+                    root.style.setProperty('--card-bg', '#ffffff');
+                    root.style.setProperty('--border-color', '#eeeeee');
+                    break;
+                    
+                case 'green':
+                    root.style.setProperty('--primary-color', '#2ecc71');
+                    root.style.setProperty('--primary-light', '#efffef');
+                    root.style.setProperty('--primary-dark', '#27ae60');
+                    root.style.setProperty('--text-color', '#333333');
+                    root.style.setProperty('--text-light', '#777777');
+                    root.style.setProperty('--bg-color', '#f8f8f8');
+                    root.style.setProperty('--card-bg', '#ffffff');
+                    root.style.setProperty('--border-color', '#eeeeee');
+                    break;
+                    
+                case 'orange':
+                    root.style.setProperty('--primary-color', '#e67e22');
+                    root.style.setProperty('--primary-light', '#fff5eb');
+                    root.style.setProperty('--primary-dark', '#d35400');
+                    root.style.setProperty('--text-color', '#333333');
+                    root.style.setProperty('--text-light', '#777777');
+                    root.style.setProperty('--bg-color', '#f8f8f8');
+                    root.style.setProperty('--card-bg', '#ffffff');
+                    root.style.setProperty('--border-color', '#eeeeee');
+                    break;
+            }
+            
+            // Ajouter la classe du thème au body
+            document.body.classList.add(`theme-${theme}`);
+        }
+        
+        // Fonction pour envoyer la hauteur du contenu à la page parente
+        function sendHeightToParent() {
+            const height = document.body.scrollHeight;
+            window.parent.postMessage({ type: 'resize-iframe', height: height }, '*');
+            
+            // Répéter l'envoi de la hauteur après un court délai pour s'assurer que tout le contenu est chargé
+            setTimeout(function() {
+                const updatedHeight = document.body.scrollHeight;
+                if (updatedHeight !== height) {
+                    window.parent.postMessage({ type: 'resize-iframe', height: updatedHeight }, '*');
+                }
+            }, 500);
+        }
+        
+
+        // Fonction pour afficher une erreur
+        function showError(message) {
+            const profilesContainer = document.getElementById('profiles-container');
+            profilesContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (await initializeFirebase()) {
+                loadProfiles();
+                
+                // Envoyer la hauteur initiale après un court délai pour s'assurer que le DOM est complètement chargé
+                setTimeout(sendHeightToParent, 100);
+                
+                // Ajouter un écouteur d'événement pour les changements de taille de fenêtre
+                window.addEventListener('resize', sendHeightToParent);
+            }
+        });</script></body></html>
