@@ -459,9 +459,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="importCodesBtn">
-                        <span class="spinner-border spinner-border-sm d-none" id="importCodesSpinner" role="status" aria-hidden="true"></span>
-                        Importer
+                    <button type="button" class="btn btn-primary" id="extractCodesBtn">
+                        <span class="spinner-border spinner-border-sm d-none" id="extractCodesSpinner" role="status" aria-hidden="true"></span>
+                        Extraire les codes
                     </button>
                 </div>
             </div>
@@ -567,6 +567,114 @@
     <div class="alert alert-success d-none position-fixed top-0 start-50 translate-middle-x mt-3" id="profilesSuccess" style="z-index: 1050;"></div>
     
     <!-- Bootstrap JS -->
+    <!-- Modal d'affichage des codes extraits -->
+    <div class="modal fade" id="extractedCodesModal" tabindex="-1" aria-labelledby="extractedCodesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="extractedCodesModalLabel">Codes WiFi extraits</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> <span id="extractedCodesInfo">Codes extraits avec succès. Vérifiez-les avant importation.</span>
+                    </div>
+                    
+                    <div class="alert alert-danger d-none" id="extractedCodesError"></div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Pattern utilisé: <span id="usedPattern" class="badge bg-secondary"></span></h6>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="refinePatternBtn">
+                                        <i class="fas fa-filter me-1"></i> Affiner le pattern
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body d-none" id="refinePatternContainer">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="newPattern" class="form-label">Nouveau pattern</label>
+                                    <input type="text" class="form-control" id="newPattern">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="patternExplanationRefined" class="form-label">Explication</label>
+                                    <input type="text" class="form-control" id="patternExplanationRefined" readonly>
+                                </div>
+                                <div class="col-12">
+                                    <button type="button" class="btn btn-sm btn-primary" id="applyNewPatternBtn">
+                                        <i class="fas fa-check me-1"></i> Appliquer
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-secondary" id="cancelNewPatternBtn">
+                                        <i class="fas fa-times me-1"></i> Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="filterExtractedCodes" placeholder="Filtrer les codes...">
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-danger" id="removeInvalidCodesBtn">
+                                    <i class="fas fa-trash-alt me-1"></i> Supprimer codes invalides
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="selectAllCodesBtn">
+                                    <i class="fas fa-check-square me-1"></i> Tout sélectionner
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="extractedCodesTableFinal">
+                            <thead>
+                                <tr id="extractedCodesHeaderFinal">
+                                    <th width="40px">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAllCodesCheckbox">
+                                        </div>
+                                    </th>
+                                    <th>Code</th>
+                                    <th width="80px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="extractedCodesListFinal">
+                                <!-- Les codes extraits seront affichés ici -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3 d-none" id="noCodesSelected">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Aucun code sélectionné pour importation.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex justify-content-between w-100">
+                        <div>
+                            <span class="badge bg-primary" id="selectedCodesCount">0</span> codes sélectionnés sur <span class="badge bg-secondary" id="totalCodesCount">0</span>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="button" class="btn btn-primary" id="importCodesBtn">
+                                <span class="spinner-border spinner-border-sm d-none" id="importCodesSpinner" role="status" aria-hidden="true"></span>
+                                Importer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Script de navigation -->

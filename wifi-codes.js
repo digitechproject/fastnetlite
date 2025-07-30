@@ -1585,80 +1585,114 @@ const userPassExample = document.getElementById('userPassExample');
     const pdfFile = document.getElementById('pdfFile');
     pdfFile.addEventListener('change', function(e) {
         if (this.files && this.files[0]) {
-            const file = this.files[0];
-            let pattern = document.getElementById('detectedPattern').value;
+            // Stocker le fichier PDF sélectionné pour une utilisation ultérieure
+            window.selectedPdfFile = this.files[0];
+            
+            // Afficher le nom du fichier sélectionné
+            const fileName = this.files[0].name;
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'alert alert-info mt-2';
+            fileInfo.innerHTML = `<i class="fas fa-file-pdf me-2"></i> Fichier sélectionné: <strong>${fileName}</strong>`;
+            
+            // Supprimer toute info précédente
+            const previousInfo = document.querySelector('#pdfFile + .alert');
+            if (previousInfo) previousInfo.remove();
+            
+            // Ajouter l'info après l'input file
+            this.parentNode.insertBefore(fileInfo, this.nextSibling);
             
             // Masquer les messages d'erreur
             document.getElementById('importFormError').classList.add('d-none');
             
-            // Afficher le spinner
-            const spinner = document.getElementById('importCodesSpinner');
-            spinner.classList.remove('d-none');
-            document.getElementById('importCodesBtn').disabled = true;
-            
-            // Vérifier le format des codes
-            const isUserPass = document.getElementById('formatUserPass').checked;
-            
-            // Si aucun pattern n'est fourni, générer un pattern par défaut
-            if (!pattern) {
-                console.log('Aucun pattern fourni, génération d\'un pattern par défaut');
-                if (isUserPass) {
-                    // Pattern par défaut pour User/Pass
-                    pattern = '([A-Za-z0-9]{4,})\\s+([A-Za-z0-9]{4,})';
-                    document.getElementById('detectedPattern').value = pattern;
-                    document.getElementById('patternExplanation').textContent = 
-                        'Pattern par défaut: 4+ caractères alphanumériques, espace, 4+ caractères alphanumériques';
-                } else {
-                    // Pattern par défaut pour Voucher
-                    pattern = '[A-Za-z0-9]{4,}';
-                    document.getElementById('detectedPattern').value = pattern;
-                    document.getElementById('patternExplanation').textContent = 
-                        'Pattern par défaut: 4+ caractères alphanumériques';
-                }
-            }
-            
-            // Traiter le fichier PDF
-            processPDFFile(file, pattern, isUserPass)
-                .then((extractedCodes) => {
-                    // Stocker les codes extraits dans une variable globale
-                    window.extractedCodes = extractedCodes || [];
-                    
-                    // Masquer le spinner
-                    spinner.classList.add('d-none');
-                    document.getElementById('importCodesBtn').disabled = false;
-                    
-                    if (extractedCodes && extractedCodes.length > 0) {
-                        // Afficher un message de succès
-                        const successElement = document.getElementById('importFormSuccess');
-                        if (successElement) {
-                            successElement.textContent = `${extractedCodes.length} codes extraits avec succès`;
-                            successElement.classList.remove('d-none');
-                            
-                            // Masquer le message après 3 secondes
-                            setTimeout(() => {
-                                successElement.classList.add('d-none');
-                            }, 3000);
-                        }
-                    } else {
-                        // Aucun code trouvé
-                        const errorElement = document.getElementById('importFormError');
-                        errorElement.textContent = 'Aucun code n\'a pu être extrait du PDF. Essayez avec un exemple différent ou un autre fichier.';
-                        errorElement.classList.remove('d-none');
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur lors du traitement du PDF:', error);
-                    
-                    // Afficher l'erreur
-                    const errorElement = document.getElementById('importFormError');
-                    errorElement.textContent = 'Erreur lors du traitement du PDF: ' + error.message;
-                    errorElement.classList.remove('d-none');
-                    
-                    // Masquer le spinner
-                    spinner.classList.add('d-none');
-                    document.getElementById('importCodesBtn').disabled = false;
-                });
+            // Activer le bouton d'extraction
+            document.getElementById('extractCodesBtn').disabled = false;
         }
+    });
+    
+    // Gestionnaire pour le bouton d'extraction des codes
+    const extractCodesBtn = document.getElementById('extractCodesBtn');
+    extractCodesBtn.addEventListener('click', function() {
+        // Vérifier si un fichier PDF a été sélectionné
+        if (!window.selectedPdfFile) {
+            const errorElement = document.getElementById('importFormError');
+            errorElement.textContent = 'Veuillez sélectionner un fichier PDF.';
+            errorElement.classList.remove('d-none');
+            return;
+        }
+        
+        // Récupérer le pattern et le format des codes
+        let pattern = document.getElementById('detectedPattern').value;
+        const isUserPass = document.getElementById('formatUserPass').checked;
+        
+        // Si aucun pattern n'est fourni, générer un pattern par défaut
+        if (!pattern) {
+            console.log('Aucun pattern fourni, génération d\'un pattern par défaut');
+            if (isUserPass) {
+                // Pattern par défaut pour User/Pass
+                pattern = '([A-Za-z0-9]{4,})\\s+([A-Za-z0-9]{4,})';
+                document.getElementById('detectedPattern').value = pattern;
+                document.getElementById('patternExplanation').textContent = 
+                    'Pattern par défaut: 4+ caractères alphanumériques, espace, 4+ caractères alphanumériques';
+            } else {
+                // Pattern par défaut pour Voucher
+                pattern = '[A-Za-z0-9]{4,}';
+                document.getElementById('detectedPattern').value = pattern;
+                document.getElementById('patternExplanation').textContent = 
+                    'Pattern par défaut: 4+ caractères alphanumériques';
+            }
+        }
+        
+        // Afficher le spinner
+        const spinner = document.getElementById('extractCodesSpinner');
+        spinner.classList.remove('d-none');
+        this.disabled = true;
+        
+        // Traiter le fichier PDF
+        processPDFFile(window.selectedPdfFile, pattern, isUserPass)
+            .then((extractedCodes) => {
+                // Stocker les codes extraits dans une variable globale
+                window.extractedCodes = extractedCodes || [];
+                
+                // Masquer le spinner
+                spinner.classList.add('d-none');
+                this.disabled = false;
+                
+                if (extractedCodes && extractedCodes.length > 0) {
+                    // Stocker les codes extraits globalement
+                    window.extractedCodes = extractedCodes;
+                
+                    // Fermer le modal d'importation
+                    const importModal = bootstrap.Modal.getInstance(document.getElementById('importCodesModal'));
+                    importModal.hide();
+                    
+                    // Préparer et ouvrir le modal des codes extraits
+                    prepareExtractedCodesModal(extractedCodes, pattern, isUserPass);
+                    
+                    // Ouvrir le modal des codes extraits avec options pour empêcher la fermeture par clic extérieur
+                    const extractedCodesModal = new bootstrap.Modal(document.getElementById('extractedCodesModal'), {
+                        backdrop: 'static',  // Empêche la fermeture en cliquant à l'extérieur
+                        keyboard: false      // Empêche la fermeture avec la touche Echap
+                    });
+                    extractedCodesModal.show();
+                } else {
+                    // Aucun code trouvé
+                    const errorElement = document.getElementById('importFormError');
+                    errorElement.textContent = 'Aucun code n\'a pu être extrait du PDF. Essayez avec un exemple différent ou un autre fichier.';
+                    errorElement.classList.remove('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors du traitement du PDF:', error);
+                
+                // Afficher l'erreur
+                const errorElement = document.getElementById('importFormError');
+                errorElement.textContent = `Erreur lors du traitement du PDF: ${error.message || 'Erreur inconnue'}`;
+                errorElement.classList.remove('d-none');
+                
+                // Masquer le spinner
+                spinner.classList.add('d-none');
+                this.disabled = false;
+            });
     });
 
 
@@ -2186,67 +2220,84 @@ function extractCodesFromText(text, pattern, isUserPass) {
                 if (parts.length === 2) {
                     const userPattern = parts[0].replace(/^\^|\$$/g, '');
                     const passPattern = parts[1].replace(/^\^|\$$/g, '');
-                    regexStr = `(${userPattern})\\s+(${passPattern})`;
+                    regexStr = `^(${userPattern})\\s+(${passPattern})$`;
                 } else {
                     // Pattern générique pour User/Pass
-                    regexStr = '([A-Za-z0-9]{4,})\\s+([A-Za-z0-9]{4,})';
+                    regexStr = '^([A-Za-z0-9]{4,})\\s+([A-Za-z0-9]{4,})$';
                 }
             } else {
                 // Si le pattern ne contient pas de séparateur explicite, utiliser un pattern générique
-                regexStr = '([A-Za-z0-9]{4,})\\s+([A-Za-z0-9]{4,})';
+                regexStr = '^([A-Za-z0-9]{4,})\\s+([A-Za-z0-9]{4,})$';
             }
             
             console.log('Utilisation du pattern regex pour User/Pass:', regexStr);
-            // Utiliser le flag 'i' pour ignorer la casse
-            regex = new RegExp(regexStr, 'gmi');
+            // Utiliser le flag 'i' pour ignorer la casse mais pas 'g' pour une correspondance exacte
+            regex = new RegExp(regexStr, 'mi');
         } else {
             // Pour le format Voucher
             // Vérifier si le pattern est valide, sinon utiliser un pattern par défaut
             try {
                 // Tester si le pattern est une regex valide
-                new RegExp(pattern);
-                console.log('Utilisation du pattern regex pour Voucher:', pattern);
-                // Utiliser le flag 'i' pour ignorer la casse
-                regex = new RegExp(pattern, 'gmi');
+                // Ajouter ^ et $ pour s'assurer que le pattern correspond exactement au code
+                let strictPattern = pattern;
+                if (!strictPattern.startsWith('^')) strictPattern = '^' + strictPattern;
+                if (!strictPattern.endsWith('$')) strictPattern = strictPattern + '$';
+                
+                new RegExp(strictPattern);
+                console.log('Utilisation du pattern regex strict pour Voucher:', strictPattern);
+                // Utiliser le flag 'i' pour ignorer la casse mais pas 'g' pour une correspondance exacte
+                regex = new RegExp(strictPattern, 'mi');
             } catch (e) {
-                // Pattern invalide, utiliser un pattern par défaut
-                const defaultPattern = '[A-Za-z0-9]{4,}';
-                console.warn('Pattern invalide, utilisation du pattern par défaut:', defaultPattern);
-                regex = new RegExp(defaultPattern, 'gmi');
+                // Pattern invalide, utiliser un pattern par défaut strict
+                const defaultPattern = '^[A-Za-z0-9]{4,}$';
+                console.warn('Pattern invalide, utilisation du pattern par défaut strict:', defaultPattern);
+                regex = new RegExp(defaultPattern, 'mi');
             }
         }
         
-        // Extraire tous les codes
-        let match;
+        // Extraire tous les codes en divisant le texte en mots potentiels
         const uniqueCodes = new Set();
+        const words = cleanedText.split(/\s+/);
         
-        console.log('Début de l\'extraction des codes...');
-        while ((match = regex.exec(cleanedText)) !== null) {
-            if (isUserPass) {
-                // Format User/Mot de passe
-                const username = match[1];
-                const password = match[2];
+        console.log('Début de l\'extraction des codes avec validation stricte...');
+        
+        if (isUserPass) {
+            // Pour le format User/Mot de passe, on doit examiner les paires de mots
+            for (let i = 0; i < words.length - 1; i++) {
+                const pairText = `${words[i]} ${words[i+1]}`;
+                const match = pairText.match(regex);
                 
-                // Vérifier que les valeurs extraites sont valides
-                if (username && password && username.length >= 3 && password.length >= 3) {
-                    const codeKey = `${username}:${password}`;
+                if (match) {
+                    const username = match[1];
+                    const password = match[2];
                     
-                    if (!uniqueCodes.has(codeKey)) {
-                        uniqueCodes.add(codeKey);
-                        codes.push({ username, password });
-                        console.log('Code extrait (User/Pass):', username, password);
+                    // Vérifier que les valeurs extraites sont valides
+                    if (username && password && username.length >= 3 && password.length >= 3) {
+                        const codeKey = `${username}:${password}`;
+                        
+                        if (!uniqueCodes.has(codeKey)) {
+                            uniqueCodes.add(codeKey);
+                            codes.push({ username, password });
+                            console.log('Code extrait (User/Pass):', username, password);
+                        }
                     }
                 }
-            } else {
-                // Format Voucher
-                const code = match[0];
+            }
+        } else {
+            // Format Voucher - vérifier chaque mot individuellement
+            for (const word of words) {
+                const match = word.match(regex);
                 
-                // Vérifier que le code est valide (au moins 4 caractères)
-                if (code && code.length >= 4) {
-                    if (!uniqueCodes.has(code)) {
-                        uniqueCodes.add(code);
-                        codes.push(code);
-                        console.log('Code extrait (Voucher):', code);
+                if (match) {
+                    const code = match[0];
+                    
+                    // Vérifier que le code est valide (au moins 4 caractères)
+                    if (code && code.length >= 4) {
+                        if (!uniqueCodes.has(code)) {
+                            uniqueCodes.add(code);
+                            codes.push(code);
+                            console.log('Code extrait (Voucher):', code);
+                        }
                     }
                 }
             }
@@ -2322,24 +2373,706 @@ function displayExtractedCodes(codes, isUserPass) {
 }
 
 /**
+ * Prépare et affiche le modal des codes extraits pour validation et filtrage
+ * @param {Array} extractedCodes - Codes extraits du PDF
+ * @param {string} pattern - Pattern utilisé pour l'extraction
+ * @param {boolean} isUserPass - Indique si le format est User/Mot de passe
+ */
+function prepareExtractedCodesModal(extractedCodes, pattern, isUserPass) {
+    // Stocker les informations importantes dans des variables globales pour y accéder plus tard
+    window.currentExtractedCodes = extractedCodes;
+    window.currentPattern = pattern;
+    window.currentIsUserPass = isUserPass;
+    window.selectedCodes = [...extractedCodes]; // Par défaut, tous les codes sont sélectionnés
+    
+    // Afficher le pattern utilisé
+    const usedPatternElement = document.getElementById('usedPattern');
+    usedPatternElement.textContent = pattern;
+    
+    // Mettre à jour les compteurs
+    document.getElementById('totalCodesCount').textContent = extractedCodes.length;
+    document.getElementById('selectedCodesCount').textContent = extractedCodes.length;
+    
+    // Préparer le tableau des codes extraits
+    const tableBody = document.getElementById('extractedCodesListFinal');
+    tableBody.innerHTML = '';
+    
+    // Mettre à jour l'en-tête du tableau en fonction du format des codes
+    const tableHeader = document.getElementById('extractedCodesHeaderFinal');
+    if (isUserPass) {
+        tableHeader.innerHTML = `
+            <th width="40px">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="selectAllCodesCheckbox" checked>
+                </div>
+            </th>
+            <th>Nom d'utilisateur</th>
+            <th>Mot de passe</th>
+            <th width="80px">Actions</th>
+        `;
+    } else {
+        tableHeader.innerHTML = `
+            <th width="40px">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="selectAllCodesCheckbox" checked>
+                </div>
+            </th>
+            <th>Code</th>
+            <th width="80px">Actions</th>
+        `;
+    }
+    
+    // Ajouter chaque code au tableau
+    extractedCodes.forEach((code, index) => {
+        const row = document.createElement('tr');
+        
+        // Cellule avec checkbox
+        const checkboxCell = document.createElement('td');
+        checkboxCell.innerHTML = `
+            <div class="form-check">
+                <input class="form-check-input code-checkbox" type="checkbox" data-index="${index}" checked>
+            </div>
+        `;
+        row.appendChild(checkboxCell);
+        
+        if (isUserPass) {
+            // Cellule pour le nom d'utilisateur
+            const usernameCell = document.createElement('td');
+            usernameCell.textContent = code.username;
+            row.appendChild(usernameCell);
+            
+            // Cellule pour le mot de passe
+            const passwordCell = document.createElement('td');
+            passwordCell.textContent = code.password;
+            row.appendChild(passwordCell);
+        } else {
+            // Cellule pour le code
+            const codeCell = document.createElement('td');
+            codeCell.textContent = code;
+            row.appendChild(codeCell);
+        }
+        
+        // Cellule pour les actions
+        const actionsCell = document.createElement('td');
+        actionsCell.innerHTML = `
+            <button type="button" class="btn btn-sm btn-outline-danger remove-code-btn" data-index="${index}">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        `;
+        row.appendChild(actionsCell);
+        
+        tableBody.appendChild(row);
+    });
+    
+    // Configurer les gestionnaires d'événements pour le modal
+    setupExtractedCodesModalHandlers();
+}
+
+/**
+ * Configure les gestionnaires d'événements pour le modal des codes extraits
+ */
+function setupExtractedCodesModalHandlers() {
+    // Gérer la sélection/désélection de tous les codes
+    const selectAllCheckbox = document.getElementById('selectAllCodesCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const isChecked = this.checked;
+            const checkboxes = document.querySelectorAll('.code-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+            
+            // Mettre à jour la liste des codes sélectionnés
+            updateSelectedCodes();
+        });
+    }
+    
+    // Gérer la sélection/désélection individuelle des codes
+    const codeCheckboxes = document.querySelectorAll('.code-checkbox');
+    codeCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectedCodes();
+            
+            // Vérifier si tous les codes sont sélectionnés
+            const allChecked = [...document.querySelectorAll('.code-checkbox')]
+                .every(cb => cb.checked);
+            
+            // Mettre à jour la case à cocher "Tout sélectionner"
+            document.getElementById('selectAllCodesCheckbox').checked = allChecked;
+        });
+    });
+    
+    // Gérer la suppression individuelle des codes
+    const removeButtons = document.querySelectorAll('.remove-code-btn');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            removeExtractedCodeFinal(index);
+        });
+    });
+    
+    // Gérer le bouton "Tout sélectionner"
+    const selectAllButton = document.getElementById('selectAllCodesBtn');
+    if (selectAllButton) {
+        selectAllButton.addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('.code-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            document.getElementById('selectAllCodesCheckbox').checked = true;
+            updateSelectedCodes();
+        });
+    }
+    
+    // Gérer le bouton "Supprimer codes invalides"
+    const removeInvalidButton = document.getElementById('removeInvalidCodesBtn');
+    if (removeInvalidButton) {
+        removeInvalidButton.addEventListener('click', function() {
+            removeInvalidCodes();
+        });
+    }
+    
+    // Gérer le filtrage des codes
+    const filterInput = document.getElementById('filterExtractedCodes');
+    if (filterInput) {
+        filterInput.addEventListener('input', function() {
+            filterExtractedCodes(this.value);
+        });
+    }
+    
+    // Gérer le bouton "Affiner le pattern"
+    const refinePatternBtn = document.getElementById('refinePatternBtn');
+    if (refinePatternBtn) {
+        refinePatternBtn.addEventListener('click', function() {
+            const container = document.getElementById('refinePatternContainer');
+            container.classList.toggle('d-none');
+            
+            // Initialiser le champ avec le pattern actuel
+            document.getElementById('newPattern').value = window.currentPattern;
+            updatePatternExplanation(window.currentPattern);
+        });
+    }
+    
+    // Gérer le champ de nouveau pattern
+    const newPatternInput = document.getElementById('newPattern');
+    if (newPatternInput) {
+        newPatternInput.addEventListener('input', function() {
+            updatePatternExplanation(this.value);
+        });
+    }
+    
+    // Gérer le bouton "Appliquer" pour le nouveau pattern
+    const applyPatternBtn = document.getElementById('applyNewPatternBtn');
+    if (applyPatternBtn) {
+        applyPatternBtn.addEventListener('click', function() {
+            const newPattern = document.getElementById('newPattern').value;
+            if (newPattern) {
+                applyNewPattern(newPattern);
+            }
+        });
+    }
+    
+    // Gérer le bouton "Annuler" pour le nouveau pattern
+    const cancelPatternBtn = document.getElementById('cancelNewPatternBtn');
+    if (cancelPatternBtn) {
+        cancelPatternBtn.addEventListener('click', function() {
+            document.getElementById('refinePatternContainer').classList.add('d-none');
+        });
+    }
+    
+    // Gérer le bouton d'importation finale
+    const importBtn = document.getElementById('importCodesBtn');
+    if (importBtn) {
+        importBtn.addEventListener('click', function() {
+            importSelectedCodes();
+        });
+    }
+}
+
+/**
  * Supprime un code extrait du tableau
  * @param {number} index - Index du code à supprimer
  * @param {boolean} isUserPass - Indique si le format est User/Mot de passe
  */
 function removeExtractedCode(index, isUserPass) {
-    // Récupérer les codes extraits
-    const extractedCodes = window.extractedCodes || [];
+    if (!window.extractedCodes) return;
     
-    if (index >= 0 && index < extractedCodes.length) {
-        // Supprimer le code
-        extractedCodes.splice(index, 1);
+    // Supprimer le code de la liste
+    window.extractedCodes.splice(index, 1);
+    
+    // Mettre à jour l'affichage
+    displayExtractedCodes(window.extractedCodes, isUserPass);
+}
+
+/**
+ * Supprime un code extrait du tableau final
+ * @param {number} index - Index du code à supprimer
+ */
+function removeExtractedCodeFinal(index) {
+    if (!window.currentExtractedCodes) return;
+    
+    // Supprimer le code de la liste
+    window.currentExtractedCodes.splice(index, 1);
+    
+    // Mettre à jour l'affichage du modal
+    prepareExtractedCodesModal(window.currentExtractedCodes, window.currentPattern, window.currentIsUserPass);
+    
+    // Mettre à jour les compteurs
+    document.getElementById('totalCodesCount').textContent = window.currentExtractedCodes.length;
+    updateSelectedCodes();
+}
+
+/**
+ * Met à jour la liste des codes sélectionnés
+ */
+function updateSelectedCodes() {
+    if (!window.currentExtractedCodes) return;
+    
+    // Réinitialiser la liste des codes sélectionnés
+    window.selectedCodes = [];
+    
+    // Parcourir toutes les cases à cocher
+    const checkboxes = document.querySelectorAll('.code-checkbox');
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            const index = parseInt(checkbox.getAttribute('data-index'));
+            if (index >= 0 && index < window.currentExtractedCodes.length) {
+                window.selectedCodes.push(window.currentExtractedCodes[index]);
+            }
+        }
+    });
+    
+    // Mettre à jour le compteur de codes sélectionnés
+    document.getElementById('selectedCodesCount').textContent = window.selectedCodes.length;
+    
+    // Activer/désactiver le bouton d'importation
+    document.getElementById('importCodesBtn').disabled = window.selectedCodes.length === 0;
+}
+
+/**
+ * Filtre les codes extraits en fonction d'un terme de recherche
+ * @param {string} searchTerm - Terme de recherche
+ */
+function filterExtractedCodes(searchTerm) {
+    if (!window.currentExtractedCodes) return;
+    
+    const tableBody = document.getElementById('extractedCodesListFinal');
+    const rows = tableBody.querySelectorAll('tr');
+    const isUserPass = window.currentIsUserPass;
+    
+    searchTerm = searchTerm.toLowerCase();
+    
+    rows.forEach((row, index) => {
+        let textContent;
         
-        // Mettre à jour la variable globale
-        window.extractedCodes = extractedCodes;
+        if (isUserPass) {
+            // Pour le format user/pass, rechercher dans le nom d'utilisateur et le mot de passe
+            const username = row.cells[1].textContent.toLowerCase();
+            const password = row.cells[2].textContent.toLowerCase();
+            textContent = username + ' ' + password;
+        } else {
+            // Pour le format voucher, rechercher dans le code
+            textContent = row.cells[1].textContent.toLowerCase();
+        }
         
-        // Mettre à jour l'affichage
-        displayExtractedCodes(extractedCodes, isUserPass);
+        if (textContent.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+/**
+ * Supprime les codes considérés comme invalides
+ */
+function removeInvalidCodes() {
+    if (!window.currentExtractedCodes || window.currentExtractedCodes.length === 0) return;
+    
+    const isUserPass = window.currentIsUserPass;
+    const invalidIndices = [];
+    
+    // Identifier les codes invalides
+    window.currentExtractedCodes.forEach((code, index) => {
+        let isValid = true;
+        
+        if (isUserPass) {
+            // Vérifier si le nom d'utilisateur et le mot de passe sont valides
+            if (!code.username || !code.password || 
+                code.username.length < 3 || code.password.length < 3) {
+                isValid = false;
+            }
+        } else {
+            // Vérifier si le code voucher est valide
+            if (!code || code.length < 3) {
+                isValid = false;
+            }
+        }
+        
+        if (!isValid) {
+            invalidIndices.push(index);
+        }
+    });
+    
+    // Supprimer les codes invalides (de la fin vers le début pour éviter les problèmes d'indices)
+    for (let i = invalidIndices.length - 1; i >= 0; i--) {
+        window.currentExtractedCodes.splice(invalidIndices[i], 1);
     }
+    
+    // Mettre à jour l'affichage
+    prepareExtractedCodesModal(window.currentExtractedCodes, window.currentPattern, isUserPass);
+    
+    // Afficher un message
+    const message = `${invalidIndices.length} code(s) invalide(s) supprimé(s).`;
+    const alertElement = document.getElementById('extractedCodesAlert');
+    alertElement.textContent = message;
+    alertElement.classList.remove('d-none');
+    
+    // Masquer le message après 3 secondes
+    setTimeout(() => {
+        alertElement.classList.add('d-none');
+    }, 3000);
+}
+
+/**
+ * Met à jour l'explication du pattern
+ * @param {string} pattern - Pattern regex
+ */
+function updatePatternExplanation(pattern) {
+    const explanationElement = document.getElementById('patternExplanation');
+    if (explanationElement && pattern) {
+        explanationElement.textContent = explainPattern(pattern);
+    }
+}
+
+/**
+ * Applique un nouveau pattern aux codes extraits
+ * @param {string} newPattern - Nouveau pattern regex
+ */
+function applyNewPattern(newPattern) {
+    if (!window.selectedPdfFile) return;
+    
+    // Masquer le conteneur de raffinement de pattern
+    document.getElementById('refinePatternContainer').classList.add('d-none');
+    
+    // Afficher un spinner
+    const spinner = document.getElementById('extractedCodesSpinner');
+    spinner.classList.remove('d-none');
+    
+    // Déterminer si le format est user/pass
+    const isUserPass = document.querySelector('input[name="codeFormat"]:checked').value === 'userpass';
+    
+    // Traiter le PDF avec le nouveau pattern
+    processPDFFile(window.selectedPdfFile, newPattern, isUserPass)
+        .then(extractedCodes => {
+            // Masquer le spinner
+            spinner.classList.add('d-none');
+            
+            if (extractedCodes && extractedCodes.length > 0) {
+                // Mettre à jour le pattern courant
+                window.currentPattern = newPattern;
+                
+                // Mettre à jour l'affichage
+                prepareExtractedCodesModal(extractedCodes, newPattern, isUserPass);
+                
+                // Afficher un message de succès
+                const alertElement = document.getElementById('extractedCodesAlert');
+                alertElement.textContent = `${extractedCodes.length} code(s) extrait(s) avec le nouveau pattern.`;
+                alertElement.classList.remove('d-none', 'alert-danger');
+                alertElement.classList.add('alert-success');
+                
+                // Masquer le message après 3 secondes
+                setTimeout(() => {
+                    alertElement.classList.add('d-none');
+                }, 3000);
+            } else {
+                // Afficher un message d'erreur
+                const alertElement = document.getElementById('extractedCodesAlert');
+                alertElement.textContent = 'Aucun code n\'a pu être extrait avec ce pattern. L\'ancien pattern a été conservé.';
+                alertElement.classList.remove('d-none', 'alert-success');
+                alertElement.classList.add('alert-danger');
+                
+                // Masquer le message après 3 secondes
+                setTimeout(() => {
+                    alertElement.classList.add('d-none');
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            // Masquer le spinner
+            spinner.classList.add('d-none');
+            
+            // Afficher un message d'erreur
+            const alertElement = document.getElementById('extractedCodesAlert');
+            alertElement.textContent = `Erreur lors de l'application du nouveau pattern: ${error.message || 'Erreur inconnue'}`;
+            alertElement.classList.remove('d-none', 'alert-success');
+            alertElement.classList.add('alert-danger');
+            
+            // Masquer le message après 3 secondes
+            setTimeout(() => {
+                alertElement.classList.add('d-none');
+            }, 3000);
+        });
+}
+
+/**
+ * Importe les codes sélectionnés avec une expérience utilisateur améliorée
+ */
+function importSelectedCodes() {
+    if (!window.selectedCodes || window.selectedCodes.length === 0) return;
+    
+    // Vérifier l'existence des éléments DOM nécessaires
+    const profileSelect = document.getElementById('importProfileSelect');
+    if (!profileSelect) {
+        console.error("L'élément #importProfileSelect n'existe pas dans le DOM");
+        // Utiliser une valeur par défaut ou gérer l'erreur
+        showImportConfirmation(null);
+        return;
+    }
+    
+    const profileId = profileSelect.value;
+    
+    if (!profileId) {
+        // Afficher un message d'erreur
+        const alertElement = document.getElementById('extractedCodesAlert');
+        if (alertElement) {
+            alertElement.textContent = 'Veuillez sélectionner un profil pour l\'importation.';
+            alertElement.classList.remove('d-none', 'alert-success');
+            alertElement.classList.add('alert-danger');
+            
+            // Masquer le message après 3 secondes
+            setTimeout(() => {
+                alertElement.classList.add('d-none');
+            }, 3000);
+        }
+        return;
+    }
+    
+    // Récupérer l'ID du routeur avec vérification
+    const routerIdElement = document.getElementById('routerId');
+    const routerId = routerIdElement ? routerIdElement.value : null;
+    
+    // Afficher une confirmation élégante avant l'importation
+    showImportConfirmation(profileId, routerId);
+}
+
+/**
+ * Affiche une confirmation élégante avant l'importation des codes
+ * @param {string} profileId - ID du profil sélectionné
+ * @param {string} routerId - ID du routeur
+ */
+function showImportConfirmation(profileId, routerId) {
+    // Créer un modal de confirmation si nécessaire
+    let confirmModal = document.getElementById('importConfirmModal');
+    
+    if (!confirmModal) {
+        // Créer le modal de confirmation
+        const modalHTML = `
+        <div class="modal fade" id="importConfirmModal" tabindex="-1" aria-labelledby="importConfirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="importConfirmModalLabel">Confirmation d'importation</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-file-import fa-3x text-primary mb-3"></i>
+                            <h4>Importation des codes WiFi</h4>
+                            <p class="lead">Vous êtes sur le point d'importer <strong id="codesCount"></strong> codes WiFi.</p>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Cette action est irréversible. Les codes seront ajoutés à votre base de données.
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button type="button" class="btn btn-primary" id="confirmImportBtn">
+                            <i class="fas fa-check"></i> Confirmer l'importation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        // Ajouter le modal au DOM
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = modalHTML;
+        document.body.appendChild(modalContainer.firstElementChild);
+        
+        confirmModal = document.getElementById('importConfirmModal');
+    }
+    
+    // Mettre à jour le nombre de codes
+    const codesCount = document.getElementById('codesCount');
+    if (codesCount) {
+        codesCount.textContent = window.selectedCodes.length;
+    }
+    
+    // Initialiser le modal Bootstrap
+    const bsModal = new bootstrap.Modal(confirmModal, {
+        backdrop: 'static',
+        keyboard: false
+    });
+    
+    // Ajouter l'événement de confirmation
+    const confirmBtn = document.getElementById('confirmImportBtn');
+    if (confirmBtn) {
+        // Supprimer les anciens écouteurs d'événements
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        
+        // Ajouter le nouvel écouteur
+        newConfirmBtn.addEventListener('click', function() {
+            // Fermer le modal de confirmation
+            bsModal.hide();
+            
+            // Procéder à l'importation réelle
+            proceedWithImport(profileId, routerId);
+        });
+    }
+    
+    // Afficher le modal
+    bsModal.show();
+}
+
+/**
+ * Procède à l'importation réelle des codes
+ * @param {string} profileId - ID du profil sélectionné
+ * @param {string} routerId - ID du routeur
+ */
+function proceedWithImport(profileId, routerId) {
+    // Afficher un spinner
+    const spinner = document.getElementById('extractedCodesSpinner');
+    if (spinner) spinner.classList.remove('d-none');
+    
+    // Désactiver le bouton d'importation
+    const importBtn = document.getElementById('importCodesBtn');
+    if (importBtn) importBtn.disabled = true;
+    
+    // Importer les codes
+    importCodes(window.selectedCodes, profileId, routerId, window.currentIsUserPass)
+        .then(() => {
+            // Masquer le spinner
+            if (spinner) spinner.classList.add('d-none');
+            
+            // Fermer le modal
+            const extractedCodesModal = bootstrap.Modal.getInstance(document.getElementById('extractedCodesModal'));
+            if (extractedCodesModal) extractedCodesModal.hide();
+            
+            // Réinitialiser le formulaire d'importation
+            const importForm = document.getElementById('importForm');
+            if (importForm) importForm.reset();
+            
+            // Recharger la liste des codes
+            if (routerId) loadCodes(routerId);
+            
+            // Mettre à jour les compteurs
+            if (routerId) updateWifiCodesCounters(routerId);
+            
+            // Afficher un message de succès global avec animation
+            showSuccessAnimation(window.selectedCodes.length);
+        })
+        .catch(error => {
+            // Masquer le spinner
+            spinner.classList.add('d-none');
+            
+            // Réactiver le bouton d'importation
+            importBtn.disabled = false;
+            
+            // Afficher un message d'erreur
+            const alertElement = document.getElementById('extractedCodesAlert');
+            alertElement.textContent = `Erreur lors de l'importation des codes: ${error.message || 'Erreur inconnue'}`;
+            alertElement.classList.remove('d-none', 'alert-success');
+            alertElement.classList.add('alert-danger');
+        });
+}
+
+// La fonction removeExtractedCode a été déplacée plus haut dans le fichier
+
+/**
+ * Affiche une animation élégante pour confirmer le succès de l'importation
+ * @param {number} codesCount - Nombre de codes importés
+ */
+function showSuccessAnimation(codesCount) {
+    // Créer l'élément de notification
+    const notifContainer = document.createElement('div');
+    notifContainer.className = 'success-animation-container';
+    notifContainer.innerHTML = `
+        <div class="success-animation">
+            <div class="success-animation-icon">
+                <i class="fas fa-check-circle fa-4x text-success"></i>
+            </div>
+            <div class="success-animation-text">
+                <h4>Importation réussie !</h4>
+                <p>${codesCount} code(s) WiFi ont été importés avec succès.</p>
+            </div>
+        </div>
+    `;
+    
+    // Ajouter le style CSS si nécessaire
+    if (!document.getElementById('success-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'success-animation-style';
+        style.textContent = `
+            .success-animation-container {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 9999;
+                background-color: white;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                padding: 20px;
+                text-align: center;
+                animation: fadeInOut 3s ease-in-out forwards;
+            }
+            .success-animation {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            .success-animation-icon {
+                margin-bottom: 15px;
+                animation: scaleIn 0.5s ease-out;
+            }
+            .success-animation-text h4 {
+                margin-bottom: 10px;
+                color: #28a745;
+            }
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            }
+            @keyframes scaleIn {
+                0% { transform: scale(0); }
+                60% { transform: scale(1.2); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Ajouter au DOM
+    document.body.appendChild(notifContainer);
+    
+    // Afficher également un message global standard
+    showGlobalMessage('success', `${codesCount} code(s) importé(s) avec succès.`);
+    
+    // Supprimer après l'animation
+    setTimeout(() => {
+        if (notifContainer && notifContainer.parentNode) {
+            notifContainer.parentNode.removeChild(notifContainer);
+        }
+    }, 3000);
 }
 
 /**
@@ -2350,24 +3083,28 @@ function removeExtractedCode(index, isUserPass) {
  * @param {boolean} isUserPass - Indique si le format est User/Mot de passe
  */
 function importCodes(codes, profileId, routerId, isUserPass = false) {
-    // Vérifier s'il y a des codes
-    if (!codes || codes.length === 0) {
-        // Afficher l'erreur
-        const errorElement = document.getElementById('importFormError');
-        if (errorElement) {
-            errorElement.textContent = 'Aucun code trouvé';
-            errorElement.classList.remove('d-none');
+    // Retourner une promesse pour permettre l'utilisation de .then() et .catch()
+    return new Promise((resolve, reject) => {
+        // Vérifier s'il y a des codes
+        if (!codes || codes.length === 0) {
+            // Afficher l'erreur
+            const errorElement = document.getElementById('importFormError');
+            if (errorElement) {
+                errorElement.textContent = 'Aucun code trouvé';
+                errorElement.classList.remove('d-none');
+            }
+            
+            // Masquer le spinner
+            const spinner = document.getElementById('importCodesSpinner');
+            if (spinner) spinner.classList.add('d-none');
+            
+            const importBtn = document.getElementById('importCodesBtn');
+            if (importBtn) importBtn.disabled = false;
+            
+            // Rejeter la promesse avec une erreur
+            reject(new Error('Aucun code trouvé'));
+            return;
         }
-        
-        // Masquer le spinner
-        const spinner = document.getElementById('importCodesSpinner');
-        if (spinner) spinner.classList.add('d-none');
-        
-        const importBtn = document.getElementById('importCodesBtn');
-        if (importBtn) importBtn.disabled = false;
-        
-        return;
-    }
     
     console.log(`Importation de ${codes.length} codes pour le profil ${profileId}`);
     
@@ -2601,7 +3338,17 @@ function importCodes(codes, profileId, routerId, isUserPass = false) {
     };
     
     // Démarrer le traitement par lots
-    processBatch(0);
+    processBatch(0)
+        .then(result => {
+            // Résoudre la promesse principale avec le résultat
+            resolve(result);
+        })
+        .catch(error => {
+            // Rejeter la promesse principale en cas d'erreur
+            reject(error);
+        });
+    });
+    // Fin de la promesse
 }
 
 /**

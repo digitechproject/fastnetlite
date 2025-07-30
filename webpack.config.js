@@ -18,12 +18,14 @@ const pages = [
   'buy-code',
   'profilbuy-code',
   'settings',
-  'license-modal'
+  'license-modal',
+  'widget-profils'
 ];
 
 // Liste des modules JS sans fichier HTML associé
 const jsModules = [
-  'license-utils'
+  'license-utils',
+  'widget-integration'
 ];
 
 module.exports = {
@@ -65,6 +67,14 @@ module.exports = {
       console.log('Entrée explicite ajoutée pour license-utils.js');
     } else {
       console.error('ERREUR: license-utils.js introuvable!');
+    }
+    
+    // Ajouter explicitement widget-integration.js
+    if (require('fs').existsSync('./widget-integration.js')) {
+      entries['widget-integration'] = './widget-integration.js';
+      console.log('Entrée explicite ajoutée pour widget-integration.js');
+    } else {
+      console.error('ERREUR: widget-integration.js introuvable!');
     }
     
     // Ajouter les autres pages avec HTML associé
@@ -213,6 +223,17 @@ module.exports = {
           filename: 'license-modal.html',
           chunks: ['license-modal'],
           inject: false // Pas d'injection automatique car chargé dynamiquement
+        });
+      }
+      
+      // Configuration spéciale pour widget-profils.html
+      if (page === 'widget-profils') {
+        console.log('Configuration spéciale pour widget-profils.html');
+        return new HtmlWebpackPlugin({
+          template: './widget-profils.html',
+          filename: 'widget-profils.html',
+          chunks: ['widget-profils'],
+          inject: true
         });
       }
       

@@ -28,6 +28,9 @@ import {
 import { activateLicense, checkActiveLicense } from './license-utils';
 import { formatLicenseKey } from './license-modal.js';
 
+// Import du module d'intégration de widget
+import { initWidgetIntegration } from './widget-integration.js';
+
 // Import direct des instances Firebase déjà initialisées
 import { auth, db } from './firebase-config';
 
@@ -82,6 +85,9 @@ const billingCountryInput = document.getElementById('billingCountry');
 const saveBillingBtn = document.getElementById('saveBillingBtn');
 const paymentHistoryTable = document.getElementById('paymentHistory');
 const noPaymentsMessage = document.getElementById('noPaymentsMessage');
+
+// Élément DOM pour l'intégration du widget
+const widgetIntegrationContainer = document.getElementById('widgetIntegrationContainer');
 
 // Fonction d'initialisation
 document.addEventListener('DOMContentLoaded', () => {
@@ -919,13 +925,33 @@ function viewInvoice(paymentId) {
 
 // Fonction pour initialiser les gestionnaires d'événements
 function initEventListeners() {
-    // Gestionnaires pour le profil
-    if (profileForm) profileForm.addEventListener('submit', saveProfile);
-    if (passwordForm) passwordForm.addEventListener('submit', changePassword);
+    // Profil
+    if (profileForm) {
+        profileForm.addEventListener('submit', saveProfile);
+    }
     
-    // Gestionnaires pour la déconnexion
-    if (logoutBtn) logoutBtn.addEventListener('click', logout);
-    if (logoutBtnDropdown) logoutBtnDropdown.addEventListener('click', logout);
+    // Mot de passe
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', changePassword);
+    }
+    
+    // Facturation (désactivée - utilisation de FedaPay)
+    if (billingForm) {
+        billingForm.addEventListener('submit', saveBillingInfo);
+    }
+    
+    // Intégration du widget
+    if (widgetIntegrationContainer) {
+        initWidgetIntegration(widgetIntegrationContainer);
+    }
+    
+    // Déconnexion
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+    if (logoutBtnDropdown) {
+        logoutBtnDropdown.addEventListener('click', logout);
+    }
     
     // Gestionnaires pour l'abonnement et la licence
     setupLicenseEventHandlers();
