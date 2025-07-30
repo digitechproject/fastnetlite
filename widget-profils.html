@@ -486,6 +486,18 @@
                     applyTheme(params.theme);
                 }
                 
+                // Envoyer la hauteur du contenu à la page parente après le chargement des profils
+                setTimeout(function() {
+                    sendHeightToParent();
+                    
+                    // Ajouter des écouteurs d'événements pour les images
+                    const images = document.querySelectorAll('.momo-icon');
+                    images.forEach(img => {
+                        img.onload = function() {
+                            sendHeightToParent();
+                        };
+                    });
+                }, 300);
             } catch (error) {
                 console.error('Erreur lors du chargement des profils:', error);
                 profilesContainer.innerHTML = `
@@ -546,7 +558,25 @@
                     root.style.setProperty('--border-color', '#eeeeee');
                     break;
             }
+            
+            // Ajouter la classe du thème au body
+            document.body.classList.add(`theme-${theme}`);
         }
+        
+        // Fonction pour envoyer la hauteur du contenu à la page parente
+        function sendHeightToParent() {
+            const height = document.body.scrollHeight;
+            window.parent.postMessage({ type: 'resize-iframe', height: height }, '*');
+            
+            // Répéter l'envoi de la hauteur après un court délai pour s'assurer que tout le contenu est chargé
+            setTimeout(function() {
+                const updatedHeight = document.body.scrollHeight;
+                if (updatedHeight !== height) {
+                    window.parent.postMessage({ type: 'resize-iframe', height: updatedHeight }, '*');
+                }
+            }, 500);
+        }
+        
 
         // Fonction pour afficher une erreur
         function showError(message) {
@@ -563,6 +593,12 @@
         document.addEventListener('DOMContentLoaded', async () => {
             if (await initializeFirebase()) {
                 loadProfiles();
+                
+                // Envoyer la hauteur initiale après un court délai pour s'assurer que le DOM est complètement chargé
+                setTimeout(sendHeightToParent, 100);
+                
+                // Ajouter un écouteur d'événement pour les changements de taille de fenêtre
+                window.addEventListener('resize', sendHeightToParent);
             }
         });
     </script>

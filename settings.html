@@ -271,6 +271,12 @@
                 # Règles pour les CDN utilisés par la page
                 add action=accept dst-host=cdn.jsdelivr.net
                 add action=accept dst-host=cdnjs.cloudflare.com
+                
+                # Règles supplémentaires pour les ressources du widget
+                add action=accept dst-host=fonts.googleapis.com
+                add action=accept dst-host=fonts.gstatic.com
+                add action=accept dst-host=www.gstatic.com
+                add action=accept dst-host=storage.googleapis.com
             </pre>
             <button class="btn btn-primary position-absolute top-0 end-0 m-2" id="copyMikrotikCommands">
                 <i class="fas fa-copy me-1"></i> Copier
@@ -279,6 +285,7 @@
                                 
                                 <div class="alert alert-warning mt-3">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Important :</strong> Pour que le widget d'achat de codes WiFi s'affiche correctement sur votre portail captif, assurez-vous d'ajouter <strong>toutes</strong> les règles ci-dessus dans votre configuration MikroTik. Les règles pour les CDN et les ressources du widget sont essentielles pour le bon fonctionnement de l'iframe.
                                     Après avoir ajouté ces règles, redémarrez le service hotspot de votre routeur Mikrotik pour appliquer les changements.
                                 </div>
                             </div>

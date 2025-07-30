@@ -40,12 +40,26 @@ export async function generateWidgetCode(routerId, theme = 'default') {
         const iframeCode = `
 <!-- Début du widget FastNetLite -->
 <iframe src="${widgetUrl}" 
+    id="fastnetlite-widget"
     style="width: 100%; max-width: 600px; height: 400px; border: none; overflow: hidden;" 
     title="Forfaits WiFi FastNetLite" 
     loading="lazy" 
     scrolling="no" 
     allowtransparency="true">
 </iframe>
+<script>
+// Code pour ajuster automatiquement la hauteur de l'iframe
+window.addEventListener('message', function(event) {
+    // Vérifier l'origine du message (optionnel mais recommandé pour la sécurité)
+    if (event.data && event.data.type === 'resize-iframe') {
+        const iframe = document.getElementById('fastnetlite-widget');
+        if (iframe) {
+            // Ajouter une petite marge pour éviter les barres de défilement
+            iframe.style.height = (event.data.height + 20) + 'px';
+        }
+    }
+});
+</script>
 <!-- Fin du widget FastNetLite -->`;
 
         return iframeCode;
