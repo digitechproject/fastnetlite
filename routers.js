@@ -1,32 +1,14 @@
 // Import des fonctions Firebase nécessaires
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import { 
-    getFirestore, 
-    collection, 
-    query, 
-    where, 
-    getDocs, 
-    addDoc, 
-    deleteDoc,
-    doc,
-    updateDoc,
-    writeBatch,
-    runTransaction,
-    serverTimestamp,
-    orderBy,
-    limit,
-    startAfter,
-    getDoc,
-    setDoc
-} from "firebase/firestore";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc, writeBatch, runTransaction, serverTimestamp, orderBy, limit, startAfter, getDoc, setDoc } from "firebase/firestore";
 import './src/index';
 import { validateData, sanitizeData } from './src/validation.js';
 import { initializeCollections, checkAndCreateCollection, handleFirebaseError, displayIndexError } from './src/db-utils.js';
 import { checkAndShowLicenseModal } from './license-modal.js';
 
 // Obtenir les instances des services Firebase
-const auth = getAuth();
-const db = getFirestore();
+// Importer les instances Firebase déjà initialisées depuis firebase-config.js
+import { auth, db } from './firebase-config.js';
 
 // Variable pour éviter les appels multiples à loadRouters
 let isLoadingRouters = false;

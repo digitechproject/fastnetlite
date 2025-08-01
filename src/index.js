@@ -1,47 +1,52 @@
 // Fichier d'entrée principal pour FastNetLite
-// Import des fonctions nécessaires depuis les SDK Firebase
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, orderBy, limit, startAfter, serverTimestamp, enableIndexedDbPersistence, deleteDoc, deleteField, addDoc } from "firebase/firestore";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-import { getAnalytics } from "firebase/analytics";
+// Import des instances Firebase depuis le fichier de configuration centralisé
+import { 
+  db, 
+  auth, 
+  storage, 
+  analytics,
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+  startAfter,
+  serverTimestamp,
+  deleteDoc,
+  deleteField,
+  addDoc,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail
+} from "../firebase-config.js";
 
 // Nous n'importons pas auth.js ici pour éviter les problèmes d'initialisation Firebase
 
 // Note: Nous n'importons plus les scripts existants directement
 // car ils seront copiés par webpack et utilisés via les balises script dans les fichiers HTML
 
-// Configuration Firebase avec vos clés d'API
-const firebaseConfig = {
-  apiKey: "AIzaSyAzd4ZozdCWCy6bQK255uyVFdOrbsHoxfQ",
-  authDomain: "fastnetlite.firebaseapp.com",
-  projectId: "fastnetlite",
-  storageBucket: "fastnetlite.firebasestorage.app",
-  messagingSenderId: "539673548783",
-  appId: "1:539673548783:web:a9f7da3299069f0abf081a",
-  measurementId: "G-GSR54JNW8J"
-};
+// La configuration Firebase est déjà définie dans firebase-config.js
+// Nous utilisons l'instance centralisée pour éviter les erreurs "Type does not match the expected instance"
 
-// Initialiser Firebase
-const app = initializeApp(firebaseConfig);
+// Nous avons déjà importé les instances Firebase plus haut
+// Ne pas réimporter pour éviter les erreurs "Type does not match the expected instance"
 
-// Initialiser les services Firebase
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
-const analytics = getAnalytics(app);
+// Nous utilisons maintenant l'import direct depuis firebase-config.js
+// Pas besoin de vérifier l'initialisation ou de faire un fallback
+console.log('src/index.js: Utilisation des instances Firebase importées depuis firebase-config.js');
 
-// Activer la persistance des données pour le mode hors ligne
-enableIndexedDbPersistence(db)
-  .catch((err) => {
-    if (err.code === 'failed-precondition') {
-      // Plusieurs onglets ouverts, la persistance ne peut être activée
-      console.warn('La persistance des données ne peut pas être activée car plusieurs onglets sont ouverts');
-    } else if (err.code === 'unimplemented') {
-      // Le navigateur ne prend pas en charge la persistance
-      console.warn('Le navigateur ne prend pas en charge la persistance des données hors ligne');
-    }
-  });
+// Note: La persistance des données est déjà activée dans firebase-init.js
+console.log('src/index.js: Persistance déjà activée dans firebase-init.js');
 
 // Créer une couche de compatibilité complète pour le code existant
 // Cela permet d'utiliser l'ancien style d'API Firebase dans le code existant

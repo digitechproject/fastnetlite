@@ -1,19 +1,9 @@
 // Utilitaires pour la gestion des licences dans FastNetLite
-import { 
-    doc, 
-    getDoc, 
-    setDoc,
-    updateDoc,
-    addDoc,
-    collection,
-    query,
-    where,
-    orderBy,
-    getDocs,
-    serverTimestamp,
-    getFirestore
-} from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, getDocs, serverTimestamp } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
+
+// Importer l'instance Firestore déjà initialisée depuis firebase-config.js
+import { db } from './firebase-config.js';
 
 // Utiliser directement les fonctions getFirestore et getAuth pour obtenir les instances
 // Cela garantit qu'on utilise toujours les instances déjà initialisées
@@ -25,8 +15,7 @@ import { getAuth } from 'firebase/auth';
  */
 export async function checkActiveLicense(userId) {
     try {
-        // Obtenir directement l'instance Firestore
-        const db = getFirestore();
+        // Utiliser l'instance Firestore importée au début du fichier
         
         // Vérifier si l'utilisateur a une souscription
         const subscriptionRef = doc(db, 'users', userId, 'subscription', 'current');
@@ -93,8 +82,7 @@ export async function checkActiveLicense(userId) {
  */
 export async function activateLicense(userId, licenseKey) {
     try {
-        // Obtenir directement l'instance Firestore
-        const db = getFirestore();
+        // Utiliser l'instance Firestore importée au début du fichier
         
         // Vérifier si la licence existe
         const licensesRef = collection(db, 'licenses');
@@ -170,8 +158,7 @@ export async function activateLicense(userId, licenseKey) {
  */
 export async function generateLicense(licenseData) {
     try {
-        // Obtenir directement l'instance Firestore
-        const db = getFirestore();
+        // Utiliser l'instance Firestore importée au début du fichier
         
         // Générer une clé de licence unique
         const licenseKey = generateLicenseKey();

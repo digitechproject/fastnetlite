@@ -1,6 +1,5 @@
 // Utilitaires pour gérer les interactions avec Firebase
 import { 
-    getFirestore, 
     collection, 
     doc, 
     setDoc, 
@@ -10,7 +9,8 @@ import {
     writeBatch
 } from "firebase/firestore";
 
-const db = getFirestore();
+// Importer l'instance Firestore déjà initialisée depuis firebase-config.js
+import { db } from '../firebase-config.js';
 
 /**
  * Vérifie si une collection existe et la crée si nécessaire avec un document factice

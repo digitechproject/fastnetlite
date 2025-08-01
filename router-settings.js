@@ -1,30 +1,11 @@
 // Import des fonctions Firebase v9
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { 
-    getFirestore, 
-    collection, 
-    doc, 
-    getDoc, 
-    getDocs, 
-    query, 
-    where, 
-    orderBy, 
-    limit, 
-    startAfter,
-    endBefore,
-    addDoc, 
-    updateDoc, 
-    deleteDoc, 
-    setDoc,
-    writeBatch,
-    runTransaction,
-    serverTimestamp
-} from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, doc, getDoc, getDocs, query, where, orderBy, limit, startAfter, endBefore, addDoc, updateDoc, deleteDoc, setDoc, writeBatch, runTransaction, serverTimestamp } from "firebase/firestore";
 import './src/index';
 
 // Obtenir les instances des services Firebase
-const auth = getAuth();
-const db = getFirestore();
+// Importer les instances Firebase déjà initialisées depuis firebase-config.js
+import { auth, db } from './firebase-config.js';
 
 // Variable globale pour éviter les initialisations multiples
 window.routerSettingsJsInitialized = window.routerSettingsJsInitialized || false;

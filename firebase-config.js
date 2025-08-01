@@ -1,10 +1,35 @@
 // Configuration Firebase pour FastNetLite avec SDK moderne
+// Ce fichier sert de point d'entrée unique pour toutes les fonctionnalités Firebase
+// Il utilise l'instance Firebase initialisée par js/firebase-init.js
+
 // Import des fonctions nécessaires depuis les SDK Firebase
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, orderBy, limit, startAfter, serverTimestamp, enableIndexedDbPersistence } from "firebase/firestore";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  startAfter, 
+  serverTimestamp, 
+  enableIndexedDbPersistence,
+  deleteDoc,
+  deleteField,
+  addDoc,
+  updateDoc,
+  writeBatch,
+  runTransaction,
+  getFirestore
+} from "firebase/firestore";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
+
+// Importer l'initialisation centralisée depuis firebase-init.js
+import { initializeFirebase } from './js/firebase-init.js';
 
 // Configuration Firebase avec vos clés d'API
 const firebaseConfig = {
@@ -17,28 +42,31 @@ const firebaseConfig = {
   measurementId: "G-GSR54JNW8J"
 };
 
-// Initialiser Firebase
-const app = initializeApp(firebaseConfig);
+// Vérifier si Firebase est déjà initialisé via window
+let app, db, auth, storage, analytics;
 
-// Initialiser les services Firebase
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
-const analytics = getAnalytics(app);
+// Utiliser les instances globales si elles existent déjà
+if (window.firebaseInitialized && window.app) {
+  console.log('firebase-config: Utilisation des instances Firebase existantes depuis window');
+  app = window.app;
+  db = window.db;
+  auth = window.auth;
+  storage = window.storage;
+  analytics = window.analytics;
+} else {
+  // Sinon, initialiser Firebase via firebase-init.js
+  console.log('firebase-config: Initialisation de Firebase via firebase-init.js');
+  const instances = initializeFirebase(firebaseConfig);
+  app = instances.app;
+  db = instances.db;
+  auth = instances.auth;
+  storage = instances.storage;
+  analytics = instances.analytics;
+}
 
-// Exporter les variables Firebase pour les utiliser dans d'autres fichiers
+// Note: Les instances Firebase sont exportées à la fin du fichier
 
-// Activer la persistance des données pour le mode hors ligne
-enableIndexedDbPersistence(db)
-  .catch((err) => {
-    if (err.code === 'failed-precondition') {
-      // Plusieurs onglets ouverts, la persistance ne peut être activée
-      console.warn('La persistance des données ne peut pas être activée car plusieurs onglets sont ouverts');
-    } else if (err.code === 'unimplemented') {
-      // Le navigateur ne prend pas en charge la persistance
-      console.warn('Le navigateur ne prend pas en charge la persistance des données hors ligne');
-    }
-  });
+// Note: La persistance des données est maintenant activée dans firebase-init.js
 
 // Créer une couche de compatibilité pour le code existant
 // Cela permet d'utiliser l'ancien style d'API Firebase dans le code existant
@@ -55,6 +83,7 @@ window.firebase = {
 };
 
 // Exposer les fonctions Firebase modernes sur l'objet window pour la compatibilité avec le code existant
+
 window.db = db;
 window.auth = auth;
 window.storage = storage;
@@ -77,6 +106,7 @@ window.getDownloadURL = getDownloadURL;
 
 // Exporter les services Firebase pour une utilisation dans d'autres fichiers
 export { 
+  app,
   db, 
   auth, 
   storage, 
@@ -86,19 +116,30 @@ export {
   setDoc,
   getDoc,
   getDocs,
+  getFirestore,
   query,
   where,
   orderBy,
   limit,
   startAfter,
   serverTimestamp,
+  enableIndexedDbPersistence,
   ref,
   uploadBytes,
   getDownloadURL,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  deleteObject,
+  // Fonctions manquantes qui causent l'erreur
+  deleteDoc,
+  deleteField,
+  addDoc,
+  updateDoc,
+  writeBatch,
+  runTransaction,
 };
 
 // Pour la compatibilité avec le code existant, nous exposons également les services sur l'objet window

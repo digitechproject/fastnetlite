@@ -4,7 +4,30 @@
  * et gère l'activation des liens en fonction de la page courante
  */
 
+// Note: Les fonctions utilitaires pour la gestion des routeurs sont disponibles via window.routerUtils
+// Assurez-vous que router-utils.js est chargé avant ce script
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Vérifier si les utilitaires routeur sont disponibles
+    if (!window.routerUtils) {
+        console.warn('routerUtils non disponible. Certaines fonctionnalités de navigation peuvent être limitées.');
+        // Créer un objet vide pour éviter les erreurs
+        window.routerUtils = {
+            getRouterId: function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                let routerId = urlParams.get('routerId') || urlParams.get('id');
+                console.log('ID du routeur détecté (fallback):', routerId || 'aucun');
+                return routerId;
+            },
+            isRouterPage: function() {
+                return this.getRouterId() !== null;
+            },
+            updateRouterNavigationLinks: function() {
+                console.warn('Fonction updateRouterNavigationLinks non disponible');
+            }
+        };
+    }
+    
     // Élément où insérer la navigation
     const navContainer = document.getElementById('navigation-container');
     if (!navContainer) {
@@ -93,13 +116,8 @@ function activateCurrentPageLink() {
  */
 function setupRouterNavigation() {
     console.log('Initialisation de la navigation du routeur');
-    // Vérifier si nous sommes sur une page de routeur (avec un ID de routeur dans l'URL)
-    const urlParams = new URLSearchParams(window.location.search);
-    // Vérifier à la fois 'routerId' et 'id' comme paramètres possibles
-    let routerId = urlParams.get('routerId');
-    if (!routerId) {
-        routerId = urlParams.get('id'); // Essayer avec le paramètre 'id' si 'routerId' n'existe pas
-    }
+    // Utiliser la fonction utilitaire pour récupérer l'ID du routeur
+    const routerId = window.routerUtils.getRouterId();
     console.log('ID du routeur détecté:', routerId);
     
     if (!routerId) {
@@ -150,33 +168,50 @@ function setupRouterNavigation() {
             }
         }
         
-        // Configurer les liens avec l'ID du routeur
-        const links = {
-            'nav-router-dashboard': `router-dashboard.html?id=${routerId}`,
-            'nav-router-users': `clients.html?id=${routerId}`,
-            'nav-router-wifi-codes': `wifi-codes.html?id=${routerId}`,
-            'nav-router-payments': `payments.html?id=${routerId}`,
-            'nav-router-settings': `router-settings.html?id=${routerId}`
-        };
+        // Utiliser la fonction utilitaire pour mettre à jour les liens de navigation
+        // S'assurer que la fonction existe avant de l'appeler
+        if (typeof window.routerUtils !== 'undefined' && typeof window.routerUtils.updateRouterNavigationLinks === 'function') {
+            window.routerUtils.updateRouterNavigationLinks(routerId);
+        } else {
+            console.error('La fonction updateRouterNavigationLinks n\'est pas disponible');
+            // Mise à jour manuelle des liens si la fonction n'est pas disponible
+            updateRouterLinksManually(routerId);
+        }
         
-        // Mettre à jour les liens
-        Object.entries(links).forEach(([id, href]) => {
-            const link = document.getElementById(id);
-            if (link) {
-                link.href = href;
-                
-                // Activer le lien correspondant à la page courante
-                const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-                const targetPage = href.split('?')[0];
-                
-                console.log('Comparaison de pages:', { currentPage, targetPage });
-                
-                if (currentPage === targetPage) {
-                    link.classList.add('active');
-                    console.log('Lien activé:', id);
-                }
-            }
+        // Activer le lien correspondant à la page courante
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        
+        // Désactiver tous les liens d'abord
+        document.querySelectorAll('#routerSubNav .nav-link').forEach(link => {
+            link.classList.remove('active');
         });
+        
+        // Déterminer quel lien activer en fonction de la page courante
+        let activeNavId = null;
+        
+        // Mapper les pages aux IDs de navigation
+        if (currentPage.includes('router-dashboard')) {
+            activeNavId = 'nav-router-dashboard';
+        } else if (currentPage.includes('clients')) {
+            activeNavId = 'nav-router-users';
+        } else if (currentPage.includes('wifi-codes')) {
+            activeNavId = 'nav-router-wifi-codes';
+        } else if (currentPage.includes('payments')) {
+            activeNavId = 'nav-router-payments';
+        } else if (currentPage.includes('router-settings')) {
+            activeNavId = 'nav-router-settings';
+        }
+        
+        // Activer le lien correspondant s'il existe
+        if (activeNavId) {
+            const activeLink = document.getElementById(activeNavId);
+            if (activeLink) {
+                activeLink.classList.add('active');
+                console.log('Lien activé:', activeNavId);
+            }
+        } else {
+            console.log('Aucun lien à activer pour la page:', currentPage);
+        }
         
         // Afficher le nom du routeur
         displayRouterName(routerId);
@@ -184,6 +219,38 @@ function setupRouterNavigation() {
         // Gérer le redimensionnement de la fenêtre
         window.addEventListener('resize', handleRouterNavResponsive);
     }
+}
+
+/**
+ * Met à jour manuellement les liens de navigation du routeur
+ * @param {string} routerId - L'ID du routeur
+ */
+function updateRouterLinksManually(routerId) {
+    if (!routerId) {
+        console.warn('Tentative de mise à jour manuelle des liens sans ID de routeur');
+        return;
+    }
+    
+    // Définir les liens avec leurs IDs et URLs
+    const links = {
+        'nav-router-dashboard': `router-dashboard.html?id=${routerId}`,
+        'nav-router-users': `clients.html?id=${routerId}`,
+        'nav-router-wifi-codes': `wifi-codes.html?id=${routerId}`,
+        'nav-router-payments': `payments.html?id=${routerId}`,
+        'nav-router-settings': `router-settings.html?id=${routerId}`
+    };
+    
+    // Mettre à jour chaque lien
+    Object.entries(links).forEach(([id, href]) => {
+        const link = document.getElementById(id);
+        if (link) {
+            // Mettre à jour l'attribut href explicitement
+            link.setAttribute('href', href);
+            console.log(`Mise à jour manuelle du lien ${id} vers ${href}`);
+        } else {
+            console.warn(`Lien avec ID ${id} non trouvé dans le DOM`);
+        }
+    });
 }
 
 /**
@@ -237,17 +304,52 @@ async function displayRouterName(routerId) {
         // D'abord, afficher un nom temporaire
         routerNameElement.textContent = 'Routeur ' + routerId.substring(0, 4);
         
-        // Vérifier si Firebase est disponible
-        if (typeof window.firebase === 'undefined' || typeof db === 'undefined' || typeof getDoc === 'undefined' || typeof doc === 'undefined') {
-            console.warn('Firebase n\'est pas complètement initialisé dans ce contexte');
-            // On laisse le nom temporaire affiché
-            return;
+        // Attendre que Firebase soit disponible (max 5 secondes)
+        let attempts = 0;
+        const maxAttempts = 10; // 10 tentatives de 500ms = 5 secondes max
+        
+        while (attempts < maxAttempts) {
+            // Vérifier si Firebase est disponible via window.db (méthode moderne)
+            if (window.db) {
+                break;
+            }
+            
+            // Vérifier si Firebase est disponible via window.firebase (méthode ancienne)
+            if (window.firebase && window.firebase.firestore) {
+                break;
+            }
+            
+            console.log(`Attente de l'initialisation de Firebase (tentative ${attempts + 1}/${maxAttempts})`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // Attendre 500ms
+            attempts++;
+        }
+        
+        // Après les tentatives, vérifier si Firebase est disponible
+        if (!window.db && (!window.firebase || !window.firebase.firestore())) {
+            console.warn('Firebase n\'est pas initialisé après plusieurs tentatives');
+            return; // Garder le nom temporaire
         }
         
         try {
-            // Récupérer les informations du routeur depuis Firebase
-            const routerDoc = await getDoc(doc(db, 'routers', routerId));
-            if (routerDoc.exists()) {
+            let routerDoc;
+            
+            // Utiliser l'API moderne si disponible (préféré)
+            if (window.db && window.doc && window.getDoc) {
+                console.log('Utilisation de l\'API Firebase moderne');
+                routerDoc = await window.getDoc(window.doc(window.db, 'routers', routerId));
+            } 
+            // Sinon, utiliser l'API ancienne
+            else if (window.firebase && typeof window.firebase.firestore === 'function') {
+                console.log('Utilisation de l\'API Firebase ancienne');
+                const docRef = window.firebase.firestore().collection('routers').doc(routerId);
+                routerDoc = await docRef.get();
+            } else {
+                console.warn('Aucune API Firebase disponible');
+                return;
+            }
+            
+            if (routerDoc && routerDoc.exists()) {
+                // Récupérer les données (compatible avec les deux APIs)
                 const routerData = routerDoc.data();
                 routerNameElement.textContent = routerData.name || 'Routeur ' + routerId.substring(0, 4);
                 console.log('Nom du routeur récupéré:', routerData.name);

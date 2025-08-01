@@ -28,13 +28,22 @@ const jsModules = [
   'widget-integration'
 ];
 
+// Modules utilitaires à inclure dans tous les bundles
+const utilsToInclude = [
+  './js/firebase-init.js', // Initialisation centralisée de Firebase (doit être chargé en premier)
+  './js/router-utils.js',
+  './js/init.js'
+];
+
 module.exports = {
+  mode: 'development',
+  devtool: 'eval-source-map', // ou 'source-map' si tu veux plus précis
   // Points d'entrée
   entry: function() {
     // Objet pour stocker toutes les entrées
     const entries = {
       // Point d'entrée principal
-      index: './src/index.js'
+      index: ['./src/index.js', ...utilsToInclude]
     };
     
     // Ajouter explicitement buy-code.js
@@ -45,10 +54,10 @@ module.exports = {
       console.error('ERREUR: buy-code.js introuvable!');
     }
     
-    // Ajouter explicitement profilbuy-code.js
+    // Ajouter explicitement profilbuy-code.js avec l'initialisation centralisée de Firebase
     if (require('fs').existsSync('./profilbuy-code.js')) {
-      entries['profilbuy-code'] = './profilbuy-code.js';
-      console.log('Entrée explicite ajoutée pour profilbuy-code.js');
+      entries['profilbuy-code'] = ['./js/firebase-init.js', './profilbuy-code.js'];
+      console.log('Entrée explicite ajoutée pour profilbuy-code.js avec initialisation Firebase');
     } else {
       console.error('ERREUR: profilbuy-code.js introuvable!');
     }
@@ -114,7 +123,16 @@ module.exports = {
   output: {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: '/'  // Modifié pour utiliser la racine comme chemin public
+    publicPath: '/',  // Modifié pour utiliser la racine comme chemin public
+    // Utiliser un format UMD standard pour la compatibilité navigateur
+    library: {
+      type: 'umd'
+    }
+  },
+  
+  // Désactiver les modules ES pour la sortie webpack (pour compatibilité navigateur)
+  experiments: {
+    outputModule: false
   },
 
   // Configuration des polyfills pour les modules Node.js

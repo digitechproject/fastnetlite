@@ -1,31 +1,14 @@
 // Import des fonctions Firebase nécessaires
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import { 
-    getFirestore, 
-    collection, 
-    doc, 
-    getDoc, 
-    getDocs, 
-    query, 
-    where, 
-    orderBy, 
-    limit, 
-    startAfter,
-    endBefore,
-    addDoc, 
-    updateDoc, 
-    deleteDoc, 
-    setDoc,
-    writeBatch,
-    runTransaction,
-    serverTimestamp,
-    Timestamp
-} from "firebase/firestore";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { collection, doc, getDoc, getDocs, query, where, orderBy, limit, startAfter, endBefore, addDoc, updateDoc, deleteDoc, setDoc, writeBatch, runTransaction, serverTimestamp, Timestamp } from "firebase/firestore";
 import './src/index';
 
+// Note: Les fonctions utilitaires pour la gestion des routeurs sont disponibles via window.routerUtils
+// Assurez-vous que router-utils.js est chargé avant ce script
+
 // Obtenir les instances des services Firebase
-const auth = getAuth();
-const db = getFirestore();
+// Importer les instances Firebase déjà initialisées depuis firebase-config.js
+import { auth, db } from './firebase-config.js';
 
 // Variable globale pour éviter les initialisations multiples
 window.routerDashboardInitialized = window.routerDashboardInitialized || false;
@@ -73,9 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             
-            // Récupérer l'ID du routeur depuis l'URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const routerId = urlParams.get('id');
+            // Récupérer l'ID du routeur depuis l'URL en utilisant la fonction utilitaire
+            const routerId = window.routerUtils.getRouterId();
             
             // Vérifier si l'ID du routeur est présent
             if (!routerId) {
@@ -101,35 +83,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Configurer les gestionnaires d'événements
             setupEventHandlers(routerId);
             
-            // Gérer les liens de navigation du routeur
-            // Lien vers le tableau de bord du routeur
-            const routerDashboardLink = document.getElementById('routerDashboardLink');
-            if (routerDashboardLink) {
-                routerDashboardLink.href = `router-dashboard.html?id=${routerId}`;
-            }
-            
-            // Lien vers les codes WiFi
-            const routerWifiCodesLink = document.getElementById('routerWifiCodesLink');
-            if (routerWifiCodesLink) {
-                routerWifiCodesLink.href = `wifi-codes.html?id=${routerId}`;
-            }
-            
-            // Lien vers les clients
-            const routerClientsLink = document.getElementById('routerClientsLink');
-            if (routerClientsLink) {
-                routerClientsLink.href = `clients.html?id=${routerId}`;
-            }
-            
-            // Lien vers les paiements
-            const routerPaymentsLink = document.getElementById('routerPaymentsLink');
-            if (routerPaymentsLink) {
-                routerPaymentsLink.href = `payments.html?id=${routerId}`;
-            }
-            
-            // Lien vers les paramètres
-            const routerSettingsLink = document.getElementById('routerSettingsLink');
-            if (routerSettingsLink) {
-                routerSettingsLink.href = `router-settings.html?id=${routerId}`;
+            // Utiliser la fonction utilitaire pour mettre à jour les liens de navigation du routeur
+            if (window.routerUtils && typeof window.routerUtils.updateRouterNavigationLinks === 'function') {
+                window.routerUtils.updateRouterNavigationLinks(routerId);
+            } else {
+                console.warn('La fonction updateRouterNavigationLinks n\'est pas disponible');
             }
         } else {
             // Utilisateur non connecté, vérifier si nous sommes déjà sur la page d'index
@@ -898,31 +856,20 @@ function formatTimeAgo(date) {
  */
 function updateNavigationLinks(routerId) {
     try {
-        // Mettre à jour les liens dans la navigation
-        const navLinks = document.querySelectorAll('.router-nav-link');
-        if (navLinks && navLinks.length > 0) {
-            navLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && !href.includes('?id=')) {
-                    link.href = `${href}?id=${routerId}`;
-                }
-            });
+        // Utiliser la fonction utilitaire pour mettre à jour les liens de navigation standard
+        // Utiliser la fonction utilitaire pour mettre à jour les liens de navigation du routeur
+        if (window.routerUtils && typeof window.routerUtils.updateRouterNavigationLinks === 'function') {
+            window.routerUtils.updateRouterNavigationLinks(routerId);
+        } else {
+            console.warn('La fonction updateRouterNavigationLinks n\'est pas disponible');
         }
         
-        // Mettre à jour les liens spécifiques
-        const linkSelectors = [
-            'dashboardLink', 'wifiCodesLink', 'clientsLink', 'paymentsLink', 'settingsLink'
-        ];
-        
-        linkSelectors.forEach(selector => {
-            const linkElement = document.getElementById(selector);
-            if (linkElement) {
-                const href = linkElement.getAttribute('href');
-                if (href && !href.includes('?id=')) {
-                    linkElement.href = `${href}?id=${routerId}`;
-                }
-            }
-        });
+        // Mettre à jour les liens spécifiques à cette page
+        const routerBuyPageLink = document.getElementById('routerBuyPageLink');
+        if (routerBuyPageLink) {
+            routerBuyPageLink.href = `buy-code.html?id=${routerId}`;
+            console.log(`Lien routerBuyPageLink mis à jour: buy-code.html?id=${routerId}`);
+        }
         
         // Mettre à jour les liens de navigation mobile (bottom bar)
         const mobileLinks = {
@@ -939,6 +886,24 @@ function updateNavigationLinks(routerId) {
             if (link) {
                 link.href = `${url}?id=${routerId}`;
                 console.log(`Lien mobile mis à jour: ${id} -> ${url}?id=${routerId}`);
+            }
+        });
+        
+        // Activer le lien correspondant à la page courante
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        
+        // Parcourir tous les liens de navigation
+        document.querySelectorAll('.router-nav .nav-link').forEach(link => {
+            const href = link.getAttribute('href');
+            if (!href) return;
+            
+            const targetPage = href.split('?')[0];
+            
+            if (currentPage === targetPage) {
+                link.classList.add('active');
+                console.log('Lien activé:', link.id || link.textContent);
+            } else {
+                link.classList.remove('active');
             }
         });
     } catch (error) {

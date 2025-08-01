@@ -1,7 +1,5 @@
 // Import des fonctions Firebase nécessaires
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { 
-    getFirestore, 
     doc, 
     getDoc, 
     setDoc,
@@ -19,9 +17,8 @@ import './src/index';
 import { initializeCollections, checkAndCreateCollection, handleFirebaseError, displayIndexError } from './src/db-utils.js';
 import { checkAndShowLicenseModal } from './license-modal.js';
 
-// Obtenir les instances des services Firebase
-const auth = getAuth();
-const db = getFirestore();
+// Importer les instances Firebase déjà initialisées depuis firebase-config.js
+import { db, auth } from './firebase-config.js';
 
 // Variable pour stocker l'instance du graphique
 let salesChart = null;

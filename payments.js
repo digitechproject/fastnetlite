@@ -1,34 +1,14 @@
 // Import de la couche de compatibilité Firebase v9
 // Script pour la gestion des paiements FastNetLite
 // Import des modules Firebase et FedaPay
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { 
-    getFirestore, 
-    collection, 
-    doc, 
-    getDoc, 
-    getDocs, 
-    query, 
-    where, 
-    orderBy, 
-    limit, 
-    startAfter,
-    endBefore,
-    addDoc, 
-    updateDoc, 
-    deleteDoc, 
-    setDoc,
-    writeBatch,
-    Timestamp,
-    runTransaction,
-    serverTimestamp
-} from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, doc, getDoc, getDocs, query, where, orderBy, limit, startAfter, endBefore, addDoc, updateDoc, deleteDoc, setDoc, writeBatch, Timestamp, runTransaction, serverTimestamp } from "firebase/firestore";
 import './src/index';
 import { initFedaPay, createFedaPayTransaction } from './fedapay-utils.js';
 
 // Obtenir les instances des services Firebase
-const auth = getAuth();
-const db = getFirestore();
+// Importer les instances Firebase déjà initialisées depuis firebase-config.js
+import { auth, db } from './firebase-config.js';
 
 // Partie 1: Initialisation et statistiques
 
@@ -479,9 +459,12 @@ async function loadRouterInfo(routerId) {
         if (docSnap.exists()) {
             const router = docSnap.data();
             
-            // Mettre à jour le fil d'Ariane
-            document.getElementById('routerBreadcrumb').textContent = router.name;
-            document.getElementById('routerBreadcrumb').href = `router-dashboard.html?id=${routerId}`;
+            // Mettre à jour le fil d'Ariane s'il existe
+            const routerBreadcrumb = document.getElementById('routerBreadcrumb');
+            if (routerBreadcrumb) {
+                routerBreadcrumb.textContent = router.name;
+                routerBreadcrumb.href = `router-dashboard.html?id=${routerId}`;
+            }
             
             // Mettre à jour le titre de la page
             document.title = `Paiements - ${router.name} - FastNetLite`;

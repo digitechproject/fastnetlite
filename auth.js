@@ -1,23 +1,12 @@
 // Import des fonctions Firebase nécessaires
-import { 
-    getAuth, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    sendPasswordResetEmail,
-    setPersistence,
-    browserLocalPersistence,
-    browserSessionPersistence
-} from "firebase/auth";
-import { 
-    getFirestore, 
-    doc, 
-    setDoc, 
-    serverTimestamp 
-} from "firebase/firestore";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 // Obtenir les instances des services Firebase
-const auth = getAuth();
-const db = getFirestore();
+// Importer l'instance Auth déjà initialisée depuis firebase-config.js
+import { auth } from '../firebase-config.js';
+// Importer l'instance Firestore déjà initialisée depuis firebase-config.js
+import { db } from '../firebase-config.js';
 
 // Fonctions d'authentification pour FastNetLite
 // Note: Les imports sont maintenant gérés par webpack dans src/index.js
