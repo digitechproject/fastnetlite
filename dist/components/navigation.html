@@ -1,0 +1,109 @@
+<!-- Navigation principale de FastNetLite -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <!-- Logo et titre -->
+    <a class="navbar-brand d-flex align-items-center" href="dashboard.html">
+      <i class="fas fa-wifi me-2"></i>
+      <span>Fastnetlite</span>
+    </a>
+    
+    <!-- Bouton hamburger pour mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavigation" 
+            aria-controls="mainNavigation" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <!-- Menu principal -->
+    <div class="collapse navbar-collapse" id="mainNavigation">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+            <a class="nav-link" href="dashboard.html">
+                <i class="fas fa-tachometer-alt me-md-2"></i>
+                <span>Dashboard</span>
+              </a>
+          </li>
+        <li class="nav-item">
+          <a class="nav-link" href="routers.html" id="nav-routers">
+            <i class="fas fa-network-wired me-1"></i>
+            <span>Mes Routeurs</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="settings.html" id="nav-settings">
+            <i class="fas fa-cog me-1"></i>
+            <span>Paramètres</span>
+          </a>
+        </li>
+      </ul>
+      
+      <!-- Menu utilisateur -->
+      <div class="navbar-nav">
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" 
+             role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-user-circle me-1"></i>
+            <span id="navUserName">Utilisateur</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li><a class="dropdown-item" href="settings.html"><i class="fas fa-cog me-1"></i> Paramètres</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" id="navLogoutBtn"><i class="fas fa-sign-out-alt me-1"></i> Déconnexion</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Barre de navigation secondaire (pour les pages de routeur spécifiques) -->
+<div id="routerSubNav" class="bg-light d-none">
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-12 mb-3 mb-md-0">
+        <h5 class="mb-0" id="currentRouterName">
+          <i class="fas fa-router me-2"></i>
+          Routeur
+        </h5>
+      </div>
+      <div class="col-12">
+        <ul class="nav nav-pills flex-nowrap">
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:window.location.href='router-dashboard.html?id=' + (new URLSearchParams(window.location.search).get('id') || '')" id="nav-router-dashboard">
+              <i class="fas fa-tachometer-alt me-md-2"></i>
+              <span class="d-none d-md-inline">Tableau de bord</span>
+              <span class="d-md-none small d-block mt-1">Tableau</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:window.location.href='clients.html?id=' + (new URLSearchParams(window.location.search).get('id') || '')" id="nav-router-users">
+              <i class="fas fa-users me-md-2"></i>
+              <span class="d-none d-md-inline">Utilisateurs</span>
+              <span class="d-md-none small d-block mt-1">Clients</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:window.location.href='wifi-codes.html?id=' + (new URLSearchParams(window.location.search).get('id') || '')" id="nav-router-wifi-codes">
+              <i class="fas fa-key me-md-2"></i>
+              <span class="d-none d-md-inline">Codes WiFi</span>
+              <span class="d-md-none small d-block mt-1">Codes</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:window.location.href='payments.html?id=' + (new URLSearchParams(window.location.search).get('id') || '')" id="nav-router-payments">
+              <i class="fas fa-money-bill-wave me-md-2"></i>
+              <span class="d-none d-md-inline">Paiements</span>
+              <span class="d-md-none small d-block mt-1">Paiements</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:window.location.href='router-settings.html?id=' + (new URLSearchParams(window.location.search).get('id') || '')" id="nav-router-settings">
+              <i class="fas fa-cog me-md-2"></i>
+              <span class="d-none d-md-inline">Paramètres</span>
+              <span class="d-md-none small d-block mt-1">Paramètres</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
