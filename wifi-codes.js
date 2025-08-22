@@ -2275,6 +2275,141 @@ async function loadPdfJS() {
 }
 
 /**
+ * Détecte automatiquement les codes Userman dans le texte
+ * @param {string} text - Texte extrait du PDF
+ * @param {Object} options - Options de détection
+ * @param {string} options.prefix - Préfixe commun des codes (optionnel)
+ * @param {number} options.codeLength - Longueur des codes (optionnel, auto-détecté si non fourni)
+ * @param {boolean} options.isUserPass - Format User/Password ou Voucher
+ * @returns {Array} - Codes détectés
+ */
+function detectUsermanCodes(text, options = {}) {
+    const { prefix = '', codeLength = null, isUserPass = false } = options;
+    const codes = [];
+    const uniqueCodes = new Set();
+    
+    console.log('Détection Userman avec options:', options);
+    
+    // Nettoyer le texte
+    const cleanedText = text.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ');
+    
+    // Pattern de base pour codes alphanumériques Userman
+    let basePattern;
+    if (codeLength) {
+        // Longueur fixe spécifiée
+        basePattern = prefix ? 
+            `${escapeRegex(prefix)}[A-Za-z0-9]{${codeLength - prefix.length}}` :
+            `[A-Za-z0-9]{${codeLength}}`;
+    } else {
+        // Auto-détection de la longueur (entre 4 et 12 caractères)
+        basePattern = prefix ? 
+            `${escapeRegex(prefix)}[A-Za-z0-9]{2,10}` :
+            `[A-Za-z0-9]{4,12}`;
+    }
+    
+    console.log('Pattern de base Userman:', basePattern);
+    
+    if (isUserPass) {
+        // Mode User/Password : chercher des paires de codes
+        const pairPattern = new RegExp(`(${basePattern})\\s+(${basePattern})`, 'gi');
+        const matches = cleanedText.matchAll(pairPattern);
+        
+        for (const match of matches) {
+            const username = match[1];
+            const password = match[2];
+            
+            // Vérifier que ce sont bien des codes valides (pas des mots normaux)
+            if (isValidUsermanCode(username, prefix) && isValidUsermanCode(password, prefix)) {
+                const codeKey = `${username}:${password}`;
+                if (!uniqueCodes.has(codeKey)) {
+                    uniqueCodes.add(codeKey);
+                    codes.push({ username, password });
+                    console.log('Code Userman détecté (User/Pass):', username, password);
+                }
+            }
+        }
+        
+        // Si peu de résultats, essayer de détecter les cas où password = username
+        if (codes.length < 5) {
+            const singlePattern = new RegExp(`(${basePattern})`, 'gi');
+            const singleMatches = cleanedText.matchAll(singlePattern);
+            
+            for (const match of singleMatches) {
+                const code = match[1];
+                if (isValidUsermanCode(code, prefix)) {
+                    const codeKey = `${code}:${code}`;
+                    if (!uniqueCodes.has(codeKey)) {
+                        uniqueCodes.add(codeKey);
+                        codes.push({ username: code, password: code });
+                        console.log('Code Userman détecté (User=Pass):', code);
+                    }
+                }
+            }
+        }
+    } else {
+        // Mode Voucher : chercher des codes individuels
+        const voucherPattern = new RegExp(`(${basePattern})`, 'gi');
+        const matches = cleanedText.matchAll(voucherPattern);
+        
+        for (const match of matches) {
+            const code = match[1];
+            if (isValidUsermanCode(code, prefix)) {
+                if (!uniqueCodes.has(code)) {
+                    uniqueCodes.add(code);
+                    codes.push(code);
+                    console.log('Code Userman détecté (Voucher):', code);
+                }
+            }
+        }
+    }
+    
+    console.log(`Détection Userman terminée: ${codes.length} codes trouvés`);
+    return codes;
+}
+
+/**
+ * Valide qu'un code correspond aux critères Userman
+ * @param {string} code - Code à valider
+ * @param {string} prefix - Préfixe attendu
+ * @returns {boolean} - True si le code est valide
+ */
+function isValidUsermanCode(code, prefix = '') {
+    if (!code || code.length < 4) return false;
+    
+    // Vérifier le préfixe si spécifié
+    if (prefix && !code.startsWith(prefix)) return false;
+    
+    // Vérifier que c'est bien alphanumerique
+    if (!/^[A-Za-z0-9]+$/.test(code)) return false;
+    
+    // Exclure les mots communs qui ne sont pas des codes
+    const excludedWords = [
+        'user', 'pass', 'password', 'login', 'code', 'voucher', 'ticket',
+        'price', 'time', 'limit', 'quota', 'profile', 'router', 'mikrotik',
+        'userman', 'mikhmon', 'wifi', 'internet', 'access', 'hotspot'
+    ];
+    
+    if (excludedWords.includes(code.toLowerCase())) return false;
+    
+    // Exclure les nombres purs (prix, durées, etc.)
+    if (/^\d+$/.test(code)) return false;
+    
+    // Exclure les codes trop répétitifs (aaaa, 1111, etc.)
+    if (/^(.)\1{3,}$/.test(code)) return false;
+    
+    return true;
+}
+
+/**
+ * Échappe les caractères spéciaux pour utilisation dans une regex
+ * @param {string} string - Chaîne à échapper
+ * @returns {string} - Chaîne échappée
+ */
+function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Extrait les codes d'un texte selon un pattern
  * @param {string} text - Texte contenant les codes
  * @param {string} pattern - Pattern d'expression régulière

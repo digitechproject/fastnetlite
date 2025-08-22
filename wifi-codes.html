@@ -391,6 +391,22 @@
                             </div>
                             
                             <div class="mb-3">
+                                <label class="form-label">Mode de génération</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="generationMode" id="modemikhmon" value="mikhmon" checked>
+                                    <label class="form-check-label" for="modemikhmon">
+                                        <i class="fas fa-cog me-1"></i> Mikhmon (pattern personnalisé)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="generationMode" id="modeUserman" value="userman">
+                                    <label class="form-check-label" for="modeUserman">
+                                        <i class="fas fa-users me-1"></i> MikroTik Userman (détection automatique)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
                                 <label class="form-label">Format du code</label>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="codeFormat" id="formatVoucher" value="voucher" checked>
@@ -406,24 +422,62 @@
                                 </div>
                             </div>
                             
-                            <div id="voucherExample" class="mb-3">
-                                <label for="exampleVoucher" class="form-label">Exemple de code</label>
-                                <input type="text" class="form-control" id="exampleVoucher" placeholder="Ex: ABC123">
-                                <div class="form-text">Entrez un exemple de code pour aider à la reconnaissance</div>
+                            <!-- Options pour Mikhmon -->
+                            <div id="mikhmonOptions">
+                                <div id="voucherExample" class="mb-3">
+                                    <label for="exampleVoucher" class="form-label">Exemple de code</label>
+                                    <input type="text" class="form-control" id="exampleVoucher" placeholder="Ex: ABC123">
+                                    <div class="form-text">Entrez un exemple de code pour aider à la reconnaissance</div>
+                                </div>
+                                
+                                <div id="userPassExample" class="mb-3 d-none">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="exampleUser" class="form-label">Exemple d'utilisateur</label>
+                                            <input type="text" class="form-control" id="exampleUser" placeholder="Ex: user123">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="examplePass" class="form-label">Exemple de mot de passe</label>
+                                            <input type="text" class="form-control" id="examplePass" placeholder="Ex: pass456">
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Entrez un exemple d'utilisateur et de mot de passe pour aider à la reconnaissance</div>
+                                </div>
                             </div>
                             
-                            <div id="userPassExample" class="mb-3 d-none">
+                            <!-- Options pour Userman -->
+                            <div id="usermanOptions" class="d-none">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Mode Userman :</strong> Détection automatique des codes alphanumériques générés par MikroTik Userman.
+                                </div>
+                                
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <label for="exampleUser" class="form-label">Exemple d'utilisateur</label>
-                                        <input type="text" class="form-control" id="exampleUser" placeholder="Ex: user123">
+                                        <div class="mb-3">
+                                            <label for="usermanPrefix" class="form-label">Préfixe (optionnel)</label>
+                                            <input type="text" class="form-control" id="usermanPrefix" placeholder="Ex: wifi">
+                                            <div class="form-text">Préfixe commun des codes si configuré dans Userman</div>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="examplePass" class="form-label">Exemple de mot de passe</label>
-                                        <input type="text" class="form-control" id="examplePass" placeholder="Ex: pass456">
+                                        <div class="mb-3">
+                                            <label for="usermanCodeLength" class="form-label">Longueur des codes (optionnel)</label>
+                                            <input type="number" class="form-control" id="usermanCodeLength" min="4" max="12" placeholder="Auto">
+                                            <div class="form-text">Longueur fixe des codes (auto-détectée si vide)</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="form-text">Entrez un exemple d'utilisateur et de mot de passe pour aider à la reconnaissance</div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="usermanSamePassword">
+                                        <label class="form-check-label" for="usermanSamePassword">
+                                            Mot de passe identique au nom d'utilisateur
+                                        </label>
+                                        <div class="form-text">Cochez si l'option "password = username" est activée dans Userman</div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="mb-3">
