@@ -115,39 +115,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Configurer les autres gestionnaires d'événements
             setupEventHandlers(user.uid);
             
-            // Ajouter un gestionnaire pour le formulaire d'ajout de routeur
+            // Gestionnaire pour le formulaire d'ajout de routeur
             const addRouterForm = document.getElementById('addRouterForm');
-            if (addRouterForm) {
-                console.log('Formulaire d\'ajout de routeur trouvé');
-                
-                // Supprimer les gestionnaires d'événements existants pour éviter les doublons
-                const saveRouterBtn = document.getElementById('saveRouterBtn');
-                if (saveRouterBtn) {
-                    console.log('Bouton d\'enregistrement trouvé');
-                    
-                    // Supprimer tous les gestionnaires d'événements existants
-                    const newSaveRouterBtn = saveRouterBtn.cloneNode(true);
-                    saveRouterBtn.parentNode.replaceChild(newSaveRouterBtn, saveRouterBtn);
-                    
-                    // Ajouter un nouveau gestionnaire d'événement
-                    newSaveRouterBtn.addEventListener('click', function() {
-                        console.log('Clic sur le bouton d\'enregistrement');
-                        
-                        // Déclencher la soumission du formulaire
-                        const submitEvent = new Event('submit', { cancelable: true, bubbles: true });
-                        addRouterForm.dispatchEvent(submitEvent);
-                    });
-                }
-                
-                // Supprimer les gestionnaires d'événements existants du formulaire
-                const newAddRouterForm = addRouterForm.cloneNode(true);
-                addRouterForm.parentNode.replaceChild(newAddRouterForm, addRouterForm);
-                
-                // Récupérer la référence au nouveau formulaire
-                const updatedAddRouterForm = document.getElementById('addRouterForm');
-                
-                // Gestionnaire pour la soumission du formulaire
-                updatedAddRouterForm.addEventListener('submit', async function(e) {
+            const saveRouterBtn = document.getElementById('saveRouterBtn');
+
+            if (addRouterForm && saveRouterBtn) {
+                console.log('Formulaire et bouton d\'ajout de routeur trouvés');
+
+                // Utiliser une fonction nommée pour pouvoir la supprimer plus tard si nécessaire
+                const handleAddRouterSubmit = async function(e) {
                     e.preventDefault();
                     console.log('Soumission du formulaire d\'ajout de routeur');
                     
@@ -249,7 +225,21 @@ document.addEventListener('DOMContentLoaded', function() {
                             saveRouterBtn.disabled = false;
                         }
                     }
-                });
+                };
+
+                // Nettoyer les anciens écouteurs avant d'en ajouter de nouveaux
+                // pour éviter les soumissions multiples.
+                // On attache l'événement au formulaire, déclenché par le bouton.
+                addRouterForm.removeEventListener('submit', window.handleAddRouterSubmit);
+                window.handleAddRouterSubmit = handleAddRouterSubmit; // Stocker la référence globalement
+                addRouterForm.addEventListener('submit', window.handleAddRouterSubmit);
+
+                // Le bouton déclenche simplement la soumission du formulaire
+                // (son type="submit" dans le HTML s'en charge). S'il est de type="button",
+                // on ajoute un click listener.
+                if (saveRouterBtn.type === 'button') {
+                    saveRouterBtn.onclick = () => addRouterForm.requestSubmit();
+                }
             }
         } else {
             // Utilisateur non connecté, rediriger vers la page de connexion

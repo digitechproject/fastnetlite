@@ -1577,7 +1577,26 @@ const formatUserPass = document.getElementById('formatUserPass');
 const voucherExample = document.getElementById('voucherExample');
 const userPassExample = document.getElementById('userPassExample');
     
-    // Gestionnaire pour le changement de format de code
+    // Gestionnaire pour le changement de mode de génération (Mikhmon vs Userman)
+    document.querySelectorAll('input[name="generationMode"]').forEach(radio => {
+        radio.addEventListener('change', (event) => {
+            const mikhmonOptions = document.getElementById('mikhmonOptions');
+            const usermanOptions = document.getElementById('usermanOptions');
+            const detectedPatternContainer = document.querySelector('#detectedPattern').closest('.mb-3');
+
+            if (event.target.value === 'userman') {
+                mikhmonOptions.classList.add('d-none');
+                usermanOptions.classList.remove('d-none');
+                detectedPatternContainer.classList.add('d-none'); // Cacher le pattern pour Userman
+            } else {
+                mikhmonOptions.classList.remove('d-none');
+                usermanOptions.classList.add('d-none');
+                detectedPatternContainer.classList.remove('d-none'); // Afficher le pattern pour Mikhmon
+            }
+        });
+    });
+
+    // Gestionnaire pour le changement de format de code (Voucher vs User/Pass)
     document.querySelectorAll('input[name="codeFormat"]').forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.value === 'voucher') {
@@ -2127,7 +2146,8 @@ function processTextCodes(text, profileId, routerId) {
  * @param {boolean} isUserPass - Indique si le format est User/Mot de passe
  * @returns {Promise<Array>}
  */
-async function processPDFFile(file, pattern, isUserPass) {
+async function processPDFFile(file, options) {
+    const { generationMode, pattern, isUserPass, prefix, codeLength, usermanSamePassword } = options;
     console.log('Début du traitement du PDF avec pattern:', pattern, 'isUserPass:', isUserPass);
     
     // Vérifier si pdfjsLib est disponible
@@ -2191,10 +2211,21 @@ async function processPDFFile(file, pattern, isUserPass) {
         
         console.log('Texte extrait du PDF (extrait):', extractedText.substring(0, 200) + '...');
         
-        // Extraire les codes selon le pattern
-        console.log('Extraction des codes avec le pattern:', pattern);
-        const extractedCodes = extractCodesFromText(extractedText, pattern, isUserPass);
-        console.log('Nombre de codes extraits:', extractedCodes.length);
+        let extractedCodes = [];
+        if (generationMode === 'userman') {
+            console.log('Lancement de la détection Userman...');
+            const usermanOptions = {
+                prefix: prefix,
+                codeLength: codeLength,
+                isUserPass: isUserPass,
+                usermanSamePassword: usermanSamePassword
+            };
+            extractedCodes = detectUsermanCodes(extractedText, usermanOptions);
+        } else {
+            // Mode Mikhmon
+            console.log('Extraction des codes avec le pattern:', pattern);
+            extractedCodes = extractCodesFromText(extractedText, pattern, isUserPass);
+        }
         
         if (extractedCodes.length === 0) {
             console.warn('Aucun code trouvé avec le pattern actuel. Essai avec un pattern plus souple...');
@@ -2284,87 +2315,104 @@ async function loadPdfJS() {
  * @returns {Array} - Codes détectés
  */
 function detectUsermanCodes(text, options = {}) {
-    const { prefix = '', codeLength = null, isUserPass = false } = options;
-    const codes = [];
-    const uniqueCodes = new Set();
+    let { prefix = '', codeLength = null, isUserPass = false, usermanSamePassword = false } = options;
     
-    console.log('Détection Userman avec options:', options);
+    console.log('Détection Userman avec options initiales:', options);
     
     // Nettoyer le texte
     const cleanedText = text.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ');
-    
-    // Pattern de base pour codes alphanumériques Userman
-    let basePattern;
-    if (codeLength) {
-        // Longueur fixe spécifiée
-        basePattern = prefix ? 
-            `${escapeRegex(prefix)}[A-Za-z0-9]{${codeLength - prefix.length}}` :
-            `[A-Za-z0-9]{${codeLength}}`;
-    } else {
-        // Auto-détection de la longueur (entre 4 et 12 caractères)
-        basePattern = prefix ? 
-            `${escapeRegex(prefix)}[A-Za-z0-9]{2,10}` :
-            `[A-Za-z0-9]{4,12}`;
+    const words = cleanedText.split(/\s+/);
+
+    // --- Auto-détection si nécessaire ---
+    if (!codeLength || !prefix) {
+        // 1. Extraire tous les candidats potentiels
+        let candidates = words.filter(word => isValidUsermanCode(word, '')); // Pré-filtrage sans préfixe
+
+        // 2. Analyser la longueur
+        if (!codeLength && candidates.length > 0) {
+            const lengthCounts = candidates.reduce((acc, code) => {
+                acc[code.length] = (acc[code.length] || 0) + 1;
+                return acc;
+            }, {});
+
+            const [detectedL, count] = Object.entries(lengthCounts).sort((a, b) => b[1] - a[1])[0] || [null, 0];
+            // Accepter la longueur détectée si elle est suffisamment dominante
+            if (count > Math.max(5, candidates.length * 0.3)) { 
+                codeLength = parseInt(detectedL, 10);
+                console.log(`Longueur auto-détectée: ${codeLength} (trouvée ${count} fois)`);
+                // Filtrer les candidats par la longueur détectée
+                candidates = candidates.filter(c => c.length === codeLength);
+            }
+        }
+
+        // 3. Analyser le préfixe
+        if (!prefix && candidates.length > 0) {
+            const prefixCounts = candidates.reduce((acc, code) => {
+                if (code.length > 3) { // Chercher des préfixes sur des codes assez longs
+                    const p = code.substring(0, 2);
+                    if (/[a-zA-Z]{2}/.test(p)) { // Préfixe de 2 lettres
+                        acc[p] = (acc[p] || 0) + 1;
+                    }
+                }
+                return acc;
+            }, {});
+
+            const [detectedP, count] = Object.entries(prefixCounts).sort((a, b) => b[1] - a[1])[0] || [null, 0];
+            if (count > Math.max(5, candidates.length * 0.3)) {
+                prefix = detectedP;
+                console.log(`Préfixe auto-détecté: '${prefix}' (trouvé ${count} fois)`);
+            }
+        }
     }
-    
-    console.log('Pattern de base Userman:', basePattern);
-    
+
+    console.log(`Paramètres finaux pour l'extraction: Longueur=${codeLength}, Préfixe='${prefix}'`);
+
+    // --- Extraction finale basée sur les paramètres ---
+    const finalCodes = [];
+    const uniqueCodes = new Set();
+    const allPotentialCodes = words.filter(w => isValidUsermanCode(w, prefix));
+
+    // Filtrer rigoureusement par longueur si elle est définie
+    const filteredWords = codeLength ? allPotentialCodes.filter(w => w.length === codeLength) : allPotentialCodes;
+
     if (isUserPass) {
-        // Mode User/Password : chercher des paires de codes
-        const pairPattern = new RegExp(`(${basePattern})\\s+(${basePattern})`, 'gi');
-        const matches = cleanedText.matchAll(pairPattern);
-        
-        for (const match of matches) {
-            const username = match[1];
-            const password = match[2];
-            
-            // Vérifier que ce sont bien des codes valides (pas des mots normaux)
-            if (isValidUsermanCode(username, prefix) && isValidUsermanCode(password, prefix)) {
+        // Logique User/Pass
+        for (let i = 0; i < filteredWords.length - 1; i++) {
+            const username = filteredWords[i];
+            const password = filteredWords[i + 1];
+
+            // Si le mot de passe est identique, on le traite comme une paire
+            if (usermanSamePassword && username === password) {
                 const codeKey = `${username}:${password}`;
                 if (!uniqueCodes.has(codeKey)) {
                     uniqueCodes.add(codeKey);
-                    codes.push({ username, password });
-                    console.log('Code Userman détecté (User/Pass):', username, password);
+                    finalCodes.push({ username, password });
                 }
+                continue; // Passer au mot suivant
             }
-        }
-        
-        // Si peu de résultats, essayer de détecter les cas où password = username
-        if (codes.length < 5) {
-            const singlePattern = new RegExp(`(${basePattern})`, 'gi');
-            const singleMatches = cleanedText.matchAll(singlePattern);
-            
-            for (const match of singleMatches) {
-                const code = match[1];
-                if (isValidUsermanCode(code, prefix)) {
-                    const codeKey = `${code}:${code}`;
-                    if (!uniqueCodes.has(codeKey)) {
-                        uniqueCodes.add(codeKey);
-                        codes.push({ username: code, password: code });
-                        console.log('Code Userman détecté (User=Pass):', code);
-                    }
+
+            // Vérifier si les deux mots forment une paire valide
+            if (filteredWords.includes(password)) { // Assure que le mot suivant est aussi un code valide
+                const codeKey = `${username}:${password}`;
+                if (!uniqueCodes.has(codeKey)) {
+                    uniqueCodes.add(codeKey);
+                    finalCodes.push({ username, password });
+                    i++; // Sauter le mot de passe qui vient d'être utilisé
                 }
             }
         }
     } else {
-        // Mode Voucher : chercher des codes individuels
-        const voucherPattern = new RegExp(`(${basePattern})`, 'gi');
-        const matches = cleanedText.matchAll(voucherPattern);
-        
-        for (const match of matches) {
-            const code = match[1];
-            if (isValidUsermanCode(code, prefix)) {
-                if (!uniqueCodes.has(code)) {
-                    uniqueCodes.add(code);
-                    codes.push(code);
-                    console.log('Code Userman détecté (Voucher):', code);
-                }
+        // Logique Voucher
+        filteredWords.forEach(code => {
+            if (!uniqueCodes.has(code)) {
+                uniqueCodes.add(code);
+                finalCodes.push(code);
             }
-        }
+        });
     }
-    
-    console.log(`Détection Userman terminée: ${codes.length} codes trouvés`);
-    return codes;
+
+    console.log(`Détection Userman terminée: ${finalCodes.length} codes trouvés`);
+    return finalCodes;
 }
 
 /**
@@ -2373,30 +2421,41 @@ function detectUsermanCodes(text, options = {}) {
  * @param {string} prefix - Préfixe attendu
  * @returns {boolean} - True si le code est valide
  */
-function isValidUsermanCode(code, prefix = '') {
-    if (!code || code.length < 4) return false;
-    
-    // Vérifier le préfixe si spécifié
-    if (prefix && !code.startsWith(prefix)) return false;
-    
-    // Vérifier que c'est bien alphanumerique
-    if (!/^[A-Za-z0-9]+$/.test(code)) return false;
-    
-    // Exclure les mots communs qui ne sont pas des codes
-    const excludedWords = [
-        'user', 'pass', 'password', 'login', 'code', 'voucher', 'ticket',
-        'price', 'time', 'limit', 'quota', 'profile', 'router', 'mikrotik',
-        'userman', 'mikhmon', 'wifi', 'internet', 'access', 'hotspot'
+function isValidUsermanCode(code, prefix) {
+    // Liste noire de mots à exclure
+    const blacklist = [
+        'inconnu', 'fcfa', 'wifizon', 'wifi', 'code', 'user', 'pass', 'fastnet', 'profil',
+        'duree', 'prix', 'nom', 'valide', 'restant', 'utilisateurs', 'mot', 'passe', 'restant',
+        'limite', 'uptime', 'commentaire', 'telephone', 'mobile', 'money', 'mtn', 'moov'
     ];
+
+    // Vérifier si le code est non nul et est une chaîne de caractères
+    if (!code || typeof code !== 'string') {
+        return false;
+    }
     
-    if (excludedWords.includes(code.toLowerCase())) return false;
+    const lowerCaseCode = code.toLowerCase();
+
+    // Vérifier si le code (ou une partie) est dans la liste noire
+    if (blacklist.some(word => lowerCaseCode.includes(word))) {
+        return false;
+    }
+
+    // Vérifier le préfixe si fourni
+    if (prefix && !code.startsWith(prefix)) {
+        return false;
+    }
     
-    // Exclure les nombres purs (prix, durées, etc.)
-    if (/^\d+$/.test(code)) return false;
+    // Éviter les nombres purs (ex: prix, dates)
+    if (/^\d+$/.test(code)) {
+        return false;
+    }
     
-    // Exclure les codes trop répétitifs (aaaa, 1111, etc.)
-    if (/^(.)\1{3,}$/.test(code)) return false;
-    
+    // Le code doit contenir au moins une lettre
+    if (!/[a-zA-Z]/.test(code)) {
+        return false;
+    }
+
     return true;
 }
 
